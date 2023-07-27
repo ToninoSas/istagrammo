@@ -1,16 +1,17 @@
 // ignore_for_file: avoid_print
-
-import 'dart:ui';
-
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:instagram_app/models/user.dart';
 
-String host = Platform.isAndroid ? '10.0.2.2:5000' : '127.0.0.1:5000';
+String host = kIsWeb
+    ? '127.0.0.1:5000'
+    : Platform.isAndroid
+        ? '10.0.2.2:5000'
+        : '127.0.0.1:5000';
 
 class Paths {
   static String login = '/api/users/login';
@@ -24,6 +25,8 @@ class Paths {
 
   static var userPosts =
       (String username) => '/api/users/active/$username/posts';
+  static var userPost =
+      (String username, int postId) => '/api/users/active/$username/posts/$postId';
 
   static var followUser = (String usernameToFollow, String username) =>
       '/api/users/active/$usernameToFollow/followers/$username';
@@ -33,6 +36,10 @@ class Paths {
       '/api/users/active/$usernameToRemoveFollow/followers/$username/remove';
 
   static String syn = '/api/auth/syn';
+  static String logOut = '/api/auth/logout';
+
+  static var like = (String username, String postId) =>
+      '/api/users/active/$username/posts/$postId/likes';
 }
 
 class UserApi {
@@ -51,7 +58,7 @@ class UserApi {
     return null;
   }
 
-  static followUser(String usernameToFollow, User currentUser) async {
+  static followUser(String usernameToFollow, AuthUser currentUser) async {
     Uri url = Uri.http(
         host, Paths.followUser(usernameToFollow, currentUser.username));
 
@@ -60,13 +67,11 @@ class UserApi {
     print(response.body.toString());
     print(response.statusCode);
 
-    var data = json.decode(response.body);
-
-    return data;
+    return response.statusCode;
   }
 
   static removeFollowUser(
-      String usernameToRemoveFollow, User currentUser) async {
+      String usernameToRemoveFollow, AuthUser currentUser) async {
     Uri url = Uri.http(host,
         Paths.removeFollowUser(usernameToRemoveFollow, currentUser.username));
 
@@ -76,9 +81,7 @@ class UserApi {
     print(response.body.toString());
     print(response.statusCode);
 
-    var data = json.decode(response.body);
-
-    return data;
+    return response.statusCode;
   }
 
   static Future<List> getUserFollowers(String username) async {
@@ -94,6 +97,10 @@ class UserApi {
     return data;
   }
 
+  
+}
+
+class PostApi {
   static Future<List> getUserPosts(String username) async {
     Uri url = Uri.http(host, Paths.userPosts(username));
 
@@ -107,6 +114,42 @@ class UserApi {
     return data;
   }
 
+  static getPost(String username, int postId) async {
+    Uri url = Uri.http(host, Paths.userPost(username, postId));
+
+    var response = await http.get(url);
+
+    print(response.statusCode);
+    print(response.body);
+
+    var data = json.decode(response.body);
+
+    return data;
+  }
+  static addLike(String postOwner, String postId, String currentUsername) async {
+    Uri url = Uri.http(host, Paths.like(postOwner, postId));
+
+    var response = await http.post(url, body: {'like_by':currentUsername});
+
+    print(response.statusCode);
+    print(response.body);
+
+    return response.statusCode;
+  }
+
+  static removeLike(String username, String postId, String currentUsername) async {
+    Uri url = Uri.http(host, Paths.like(username, postId));
+
+    var response = await http.delete(url, body: {'like_by':currentUsername});
+
+    print(response.statusCode);
+    print(response.body);
+
+    return response.statusCode;
+  }
+}
+
+class Auth {
   static Future<dynamic> login(String username, String password) async {
     Uri url = Uri.http(host, Paths.login);
 
@@ -123,9 +166,7 @@ class UserApi {
 
     return null;
   }
-}
 
-class Auth {
   // richiesta al server per vedere se l'apikey è ancora valida
   static syn(String apiKey) async {
     Uri url = Uri.http(host, Paths.syn);
@@ -138,6 +179,16 @@ class Auth {
     }
 
     return false;
+  }
+
+  static logout(String apiKey) async {
+    Uri url = Uri.http(host, Paths.logOut);
+    var response = await http.delete(url, body: {'api_key': apiKey});
+
+    print(response.statusCode);
+    print(response.body);
+
+    return response.statusCode;
   }
 }
 

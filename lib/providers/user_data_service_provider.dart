@@ -10,7 +10,7 @@ class UserDataServiceProvider extends InheritedWidget {
   final Widget child;
   // final DataService dataService = DataService();
 
-  User userData;
+  AuthUser userData;
 
   static UserDataServiceProvider of(BuildContext context) {
     return (context
@@ -18,7 +18,7 @@ class UserDataServiceProvider extends InheritedWidget {
         as UserDataServiceProvider);
   }
 
-  void update(User newUser) {
+  void update(AuthUser newUser) {
     userData = newUser;
   }
 

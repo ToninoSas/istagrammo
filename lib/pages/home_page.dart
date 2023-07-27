@@ -5,8 +5,10 @@ import 'package:instagram_app/utils/func.dart';
 import 'package:instagram_app/widgets/post_widget.dart';
 import 'package:instagram_app/widgets/circle_box_widget.dart';
 import 'package:instagram_app/widgets/bottom_navbar_widget.dart';
+import 'package:provider/provider.dart';
 
 import '../models/user.dart';
+import '../providers/user_provider.dart';
 
 // import 'package:instagram_app/func.dart';
 
@@ -28,7 +30,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    User user = UserDataServiceProvider.of(context).userData;
+    // User user = UserDataServiceProvider.of(context).userData;
+
+    AuthUser user = Provider.of<UserProvider>(context).userProfile;
 
     return Scaffold(
         appBar: AppBar(

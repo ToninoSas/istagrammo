@@ -1,16 +1,15 @@
 // ignore_for_file: prefer_const_constructors, unrelated_type_equality_checks
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:instagram_app/main_level.dart';
 import 'package:instagram_app/pages/home_page.dart';
 import 'package:instagram_app/providers/user_data_service_provider.dart';
+import 'package:instagram_app/providers/user_provider.dart';
 import 'package:instagram_app/utils/api.dart' as api;
 import 'package:instagram_app/models/user.dart';
 
-import 'package:flutter_session_manager/flutter_session_manager.dart';
 import 'package:instagram_app/utils/func.dart';
+import 'package:provider/provider.dart';
 
 //stateless quindi quando si fa hot refresh si perdono i dati nei text field
 class MyLoginPage extends StatelessWidget {
@@ -25,27 +24,27 @@ class MyLoginPage extends StatelessWidget {
     String username = _usernameController.text;
     String password = _passwordController.text;
 
-    var apiKey = await api.UserApi.login(username, password);
+    var apiKey = await api.Auth.login(username, password);
 
     if (apiKey is String) {
       // api.apiKey = apiKey;
 
-      User userProfile = User.fromJsonMap(await api.UserApi.userProfile(username));
-      userProfile.apiKey = apiKey;
+      AuthUser userProfile = AuthUser(await api.UserApi.userProfile(username));
+      userProfile.setApiKey(apiKey);
 
-      // UserDataServiceProvider(userData: userProfile, child: MainLevelWidget());
+      var posts = (await api.PostApi.getUserPosts(username));
+      userProfile.setPosts(posts);
 
-      UserDataServiceProvider.of(context).update(userProfile);
-      LocalStorage.saveUserData(userProfile);
-      LocalStorage.login();
+      // UserDataServiceProvider.of(context).update(userProfile);
 
-      LocalStorage.saveApiKey(apiKey);
+      Provider.of<UserProvider>(context, listen: false).updateUser(userProfile);
+
+      LocalStorage.login(userProfile, apiKey);
 
       print(userProfile.toJsonString());
 
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => MyHomePage()));
-
     } else {
       // manage state
     }

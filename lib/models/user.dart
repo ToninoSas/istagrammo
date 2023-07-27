@@ -1,92 +1,71 @@
 import 'dart:convert';
 
-class OtherUser {
-  late String username, descr, email, profileImgUrl;
+class User {
+  // late String apiKey;
+
+  late String username, bio, email, profileImgUrl;
   late int id, nPosts, nFollowers, nSeguiti;
-
-  OtherUser(this.id, this.username, this.descr, this.email, this.nPosts,
-      this.nFollowers, this.nSeguiti, this.profileImgUrl);
-
-  OtherUser.vacand();
-
-  OtherUser.fromJsonMap(Map<String, dynamic> json) {
-    OtherUser(
-        id = json['ID'],
-        username = json['username'],
-        descr = json['descr'],
-        email = json['email'],
-        nPosts = json['nPosts'],
-        nFollowers = json['nFollowers'],
-        nSeguiti = json['nSeguiti'],
-        profileImgUrl = json['profile_img_url']);
-  }
-
-  String toJsonString() {
-    return jsonEncode({
-      'ID': id,
-      'username': username,
-      'descr': descr,
-      'email': email,
-      'nPosts': nPosts,
-      'nFollowers': nFollowers,
-      'nSeguiti': nSeguiti,
-      'profile_img_url': profileImgUrl,
-    });
-  }
-}
-
-class User extends OtherUser {
-  late String apiKey;
 
   late var followers;
   late var posts;
 
-  User(this.apiKey, super.id, super.username, super.descr, super.email,
-      super.nPosts, super.nFollowers, super.nSeguiti, super.profileImgUrl);
+  late Map<String, dynamic> jsonMap;
+
+  User(Map<String, dynamic> json) {
+    id = json['id'];
+    username = json['username'];
+    bio = json['bio'];
+    email = json['email'];
+    nPosts = json['n_posts'];
+    nFollowers = json['n_followers'];
+    nSeguiti = json['n_seguiti'];
+    profileImgUrl = json['profile_img_url'];
+
+    jsonMap = {
+      'id': id,
+      'username': username,
+      'bio': bio,
+      'email': email,
+      'n_posts': nPosts,
+      'n_followers': nFollowers,
+      'n_seguiti': nSeguiti,
+      'profile_img_url': profileImgUrl,
+    };
+  }
 
   // per inizializzare l'app
-  User.vacand() : super.vacand();
+  User.vacand();
 
-  User.fromJsonMap(Map<String, dynamic> json, {bool readApiKey = false})
-      : super(
-          json['ID'],
-          json['username'],
-          json['descr'],
-          json['email'],
-          json['nPosts'],
-          json['nFollowers'],
-          json['nSeguiti'],
-          json['profile_img_url'],
-        ) {
-    if (readApiKey) apiKey = json['api_key'];
-  }
-
-  @override
   String toJsonString() {
-    return jsonEncode({
-      'ID': id,
-      'username': username,
-      'descr': descr,
-      'email': email,
-      'nPosts': nPosts,
-      'nFollowers': nFollowers,
-      'nSeguiti': nSeguiti,
-      'profile_img_url': profileImgUrl,
-      'api_key': apiKey
-    });
+    return jsonEncode(jsonMap);
   }
 
-  Map<String, dynamic> toJsonMap() {
-    return {
-      'ID': id,
-      'username': username,
-      'descr': descr,
-      'email': email,
-      'nPosts': nPosts,
-      'nFollowers': nFollowers,
-      'nSeguiti': nSeguiti,
-      'profile_img_url': profileImgUrl,
-      'api_key': apiKey
-    };
+  Map<String, dynamic> getJsonMap() {
+    return jsonMap;
+  }
+}
+
+class AuthUser extends User {
+  late String apiKey;
+  late Map<String, dynamic> json;
+
+  AuthUser(this.json) : super(json) {
+    // apiKey = json['api_key'];
+  }
+
+  AuthUser.vacand() : super.vacand();
+
+  // void readApiKey() {
+  //   apiKey = json['api_key'];
+  //   super.jsonMap.update('api_key', (value) => apiKey);
+  // }
+
+  void setApiKey(apiKey) {
+    this.apiKey = apiKey;
+    super.jsonMap['api_key'] = apiKey;
+  }
+
+  void setPosts(posts) {
+    super.posts = posts;
   }
 }

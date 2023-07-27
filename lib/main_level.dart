@@ -5,8 +5,10 @@ import 'package:instagram_app/pages/home_page.dart';
 import 'package:instagram_app/pages/login_page.dart';
 import 'package:instagram_app/providers/user_data_service_provider.dart';
 import 'package:instagram_app/models/user.dart';
+import 'package:instagram_app/providers/user_provider.dart';
 import 'package:instagram_app/utils/func.dart';
 import 'package:instagram_app/utils/api.dart' as api;
+import 'package:provider/provider.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 
 class MainLevelWidget extends StatelessWidget {
@@ -18,24 +20,27 @@ class MainLevelWidget extends StatelessWidget {
     // prefs.clear();
 
     if (await LocalStorage.isLoggedIn()) {
-
-      String username = (await LocalStorage.getUserData())!.username;
+      // AuthUser user = (await LocalStorage.getUserData())!;
+      print('L\'UTENTE è LOGGATO');
+      // prendo l'apikey è vedo se è valida
       String apiKey = await LocalStorage.getApiKey();
-
-      User userProfile =
-          User.fromJsonMap(await api.UserApi.userProfile(username));
-      userProfile.apiKey = apiKey;
-
-      // fare il syn per mettersi in connessione con il server e verificare l
-      // api key
 
       if (!(await api.Auth.syn(apiKey))) {
         // l'utente deve rifare il login
-
+        print('KEY NON VALIDA-> $apiKey');
         return MyLoginPage();
       }
 
-      UserDataServiceProvider.of(context).update(userProfile);
+      // se l'apikey è valida, prendo il profilo dell'utente dal server
+      String username = (await LocalStorage.getUserData())!.username;
+      AuthUser userProfile = AuthUser(await api.UserApi.userProfile(username));
+      userProfile.posts = (await api.PostApi.getUserPosts(username));
+      userProfile.setApiKey(apiKey);
+      // lo salvo localmente
+      // LocalStorage.saveUserData(userProfile);
+
+      // aggiorno i dati dell'utente
+      Provider.of<UserProvider>(context, listen: false).updateUser(userProfile);
 
       print(userProfile.apiKey);
 

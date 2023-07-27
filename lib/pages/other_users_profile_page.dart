@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:instagram_app/dialogs/one_button_dialog.dart';
 import 'package:instagram_app/providers/user_data_service_provider.dart';
+import 'package:instagram_app/providers/user_provider.dart';
 
 import 'package:instagram_app/utils/api.dart' as api;
 import 'package:instagram_app/models/user.dart';
 
 import 'package:instagram_app/widgets/circle_box_widget.dart';
+import 'package:provider/provider.dart';
 
 class OtherUserProfilePage extends StatefulWidget {
   // const ProfilePage({super.key, required this.username});
@@ -24,7 +26,7 @@ class OtherUserProfilePage extends StatefulWidget {
 }
 
 class _OtherUserProfilePage_State extends State<OtherUserProfilePage> {
-  late OtherUser otherUser;
+  late User otherUser;
   // late User currentUser;
 
   // controllare che l'utente sia gia nei seguiti
@@ -33,12 +35,14 @@ class _OtherUserProfilePage_State extends State<OtherUserProfilePage> {
 
   getUserData(context) async {
     // prendo il profilo dell'utente
-    otherUser = OtherUser.fromJsonMap(await api.UserApi.userProfile(widget.username));
+    otherUser = User(await api.UserApi.userProfile(widget.username));
     // profilo utente corrente
-    User currentUser = UserDataServiceProvider.of(context).userData;
+    AuthUser currentUser =
+        Provider.of<UserProvider>(context, listen: false).userProfile;
 
     // prendo i follower dell utente
-    var otherUserFollowers = await api.UserApi.getUserFollowers(otherUser.username);
+    var otherUserFollowers =
+        await api.UserApi.getUserFollowers(otherUser.username);
 
     // se tra i follower trovo l'utente corrente
     for (var user in otherUserFollowers) {
@@ -49,38 +53,38 @@ class _OtherUserProfilePage_State extends State<OtherUserProfilePage> {
     }
   }
 
-  followUser(context, usernameToFollow, User currentUser) async {
+  followUser(context, usernameToFollow, AuthUser currentUser) async {
     print("api key ${currentUser.apiKey}");
 
     var response = await api.UserApi.followUser(usernameToFollow, currentUser);
 
-    String error = response['error'];
-
-    if (error == "") {
+    if (response == 200) {
       setState(() {
         hasFollow = true;
       });
 
-      followDialog(context, 'Ora segui ${widget.username}!');
+      oneButtonDialog(context, 'Ora segui ${widget.username}!');
 
-      // UserDataServiceProvider.of(context).userData.nFollowers++;
+      Provider.of<UserProvider>(context, listen: false).userProfile.nSeguiti++;
+    } else {
+      oneButtonDialog(context, 'Errore... Riprova');
     }
   }
 
-  removeFollowUser(context, usernameToFollow, User currentUser) async {
-    var response = await api.UserApi.removeFollowUser(usernameToFollow, currentUser);
+  removeFollowUser(context, usernameToFollow, AuthUser currentUser) async {
+    var response =
+        await api.UserApi.removeFollowUser(usernameToFollow, currentUser);
 
-    String error = response['error'];
-
-    if (error == "") {
+    if (response == 200) {
       setState(() {
         hasFollow = false;
       });
 
-      followDialog(context, 'Ora non segui più ${widget.username}!');
+      oneButtonDialog(context, 'Ora non segui più ${widget.username}!');
 
-      // UserDataServiceProvider.of(context).userData.nFollowers--;
-
+      Provider.of<UserProvider>(context, listen: false).userProfile.nSeguiti--;
+    } else {
+      oneButtonDialog(context, 'Errore... Riprova');
     }
   }
 
@@ -88,7 +92,7 @@ class _OtherUserProfilePage_State extends State<OtherUserProfilePage> {
   Widget build(BuildContext context) {
     // final user = ModalRoute.of(context)?.settings.arguments;
 
-    User currentUser = UserDataServiceProvider.of(context).userData;
+    AuthUser currentUser = Provider.of<UserProvider>(context).userProfile;
 
     return FutureBuilder(
         future: getUserData(context),
@@ -167,7 +171,7 @@ class _OtherUserProfilePage_State extends State<OtherUserProfilePage> {
                           Padding(
                             padding: EdgeInsets.all(2),
                             child: Text(
-                              otherUser.descr,
+                              otherUser.bio,
                               textAlign: TextAlign.start,
                             ),
                           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-followDialog(BuildContext context, String text) {
+oneButtonDialog(BuildContext context, String text) {
   // set up the button
   Widget okButton = TextButton(
     child: const Text("OK"),

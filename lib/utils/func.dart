@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_session_manager/flutter_session_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 
@@ -36,27 +35,31 @@ class LocalStorage {
   static saveUserData(User user) async {
     final prefs = await SharedPreferences.getInstance();
 
-    final userDataJson = jsonEncode(user.toJsonMap());
+    final userDataJson = jsonEncode(user.getJsonMap());
 
     prefs.setString('userData', userDataJson);
   }
 
-  static Future<User?> getUserData() async {
+  static Future<AuthUser?> getUserData() async {
     final prefs = await SharedPreferences.getInstance();
     // Retrieve the JSON string from shared preferences
     final userDataJson = prefs.getString('userData');
     if (userDataJson != null) {
       // If the JSON string exists, parse it into a UserDataModel object
-      final userData =
-          User.fromJsonMap(jsonDecode(userDataJson), readApiKey: true);
+      final userData = AuthUser(jsonDecode(userDataJson));
       return userData;
     }
     return null; // Return null if no user data is found
   }
 
-  static login() async {
+  static login(User userdata, String apiKey) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool('loggedIn', true);
+
+    print('LOGIN EFFETTUATO E DATI SALVATI');
+
+    await saveUserData(userdata);
+    await saveApiKey(apiKey);
   }
 
   static logout() async {

@@ -7,6 +7,9 @@ import 'package:instagram_app/widgets/bottom_navbar_widget.dart';
 
 import 'package:instagram_app/utils/api.dart' as api;
 import 'package:instagram_app/widgets/circle_box_widget.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/user_provider.dart';
 
 class MySearchPage extends StatefulWidget {
   static const String pageRoute = '/search';
@@ -41,7 +44,8 @@ class _MySearchPage extends State<MySearchPage> {
   @override
   //al posto di cercare le foto, cercherà gli utenti, quindi ci sarà una lista di utenti
   Widget build(BuildContext context) {
-    User currentUser = UserDataServiceProvider.of(context).userData;
+    // User currentUser = UserDataServiceProvider.of(context).userData;
+    AuthUser currentUser = Provider.of<UserProvider>(context).userProfile;
 
     return SafeArea(
         child: Scaffold(
