@@ -1,6 +1,17 @@
 // ignore_for_file: file_names, prefer_const_constructors, camel_case_types
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:instagram_app/dialogs/one_button_dialog.dart';
+import 'package:instagram_app/models/user.dart';
+import 'package:instagram_app/providers/user_provider.dart';
+
+import 'package:instagram_app/utils/api.dart' as api;
+import 'package:instagram_app/utils/func.dart';
+import 'package:instagram_app/widgets/circle_box_widget.dart';
+import 'package:provider/provider.dart';
 
 class ModifyProfilePage extends StatefulWidget {
   const ModifyProfilePage({super.key});
@@ -12,23 +23,53 @@ class ModifyProfilePage extends StatefulWidget {
 }
 
 class _ModifyProfilePage_State extends State<ModifyProfilePage> {
-  final TextEditingController _nameController =
-      TextEditingController(text: 'Tonino');
-  final TextEditingController _descrController =
-      TextEditingController(text: 'Antonio \nPrencipe \n2004');
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
 
-  saveData() {
+  saveData(AuthUser currentUser) async {
     String newName = _nameController.text;
-    String newDescr = _descrController.text;
+    String newBio = _bioController.text;
 
-    //save new data
+    if (await api.UserApi.modifyUserProfile(
+            currentUser: currentUser, newUsername: newName, newBio: newBio) ==
+        200) {
+      setState(() {});
+    }
 
     //return to profile page
-    Navigator.pushReplacementNamed(context, '/profile');
+  }
+
+  logout(context) async {
+    AuthUser userProfile =
+        Provider.of<UserProvider>(context, listen: false).userProfile;
+    await LocalStorage.logout();
+    await api.Auth.logout(userProfile.apiKey);
+
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
   Widget build(BuildContext context) {
+    AuthUser currentUser = Provider.of<UserProvider>(context).userProfile;
+    _nameController.text = currentUser.username;
+    _bioController.text = currentUser.bio;
+
+    XFile? newProfilePicFile;
+    Image newProfilePicImage;
+  
+    ImageProvider finalImg = NetworkImage(currentUser.profileImgUrl);
+
+    _getImageFromGallery() async {
+      XFile? pickedFile =
+          (await ImagePicker().pickImage(source: ImageSource.gallery));
+
+      if (pickedFile != null) {
+        return pickedFile;
+      }
+    }
+
+    // TODO aggiungere la modifica dell'immagine profilo
+
     return Scaffold(
       appBar: AppBar(
         //remove arrow back
@@ -48,6 +89,31 @@ class _ModifyProfilePage_State extends State<ModifyProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        CircleBox(
+                          imageProvider: finalImg,
+                        ),
+                        ElevatedButton(
+                            onPressed: () async {
+                              newProfilePicFile = await _getImageFromGallery();
+                              newProfilePicImage =
+                                  Image.file(File(newProfilePicFile!.path));
+
+                              setState(() {
+                                finalImg = newProfilePicImage.image;
+                                print('ktm');
+                              });
+
+                              print(finalImg.toString());
+                            },
+                            child: Text('Modifica'))
+                      ],
+                    ),
+                    SizedBox(
+                      height: 30,
+                    ),
                     TextField(
                       controller: _nameController,
                       decoration: InputDecoration(
@@ -55,28 +121,36 @@ class _ModifyProfilePage_State extends State<ModifyProfilePage> {
                       ),
                     ),
                     TextField(
-                      maxLines: 4,
-                      controller: _descrController,
+                      // maxLines: 4,
+                      controller: _bioController,
                       decoration: InputDecoration(
                         labelText: 'Inserire descrizione',
                       ),
                     ),
-                    // CalendarDatePicker(
-                    //     initialDate: DateTime(2023),
-                    //     firstDate: DateTime(2000),
-                    //     lastDate: DateTime(2023),
-                    //     onDateChanged: (DateTime) {}),
-                    // TextField(
-                    //   keyboardType: TextInputType.number,
-                    //   decoration: InputDecoration(labelText: 'Inserire età'),
-                    // ),
                     SizedBox(
                       height: 30,
                     ),
                     ElevatedButton.icon(
-                        onPressed: () {},
+                        onPressed: () async {
+                          // mostrare il dialog
+
+                          var confirm = await twoButtonDialog(
+                              context, 'La modifica comporterà il logout');
+
+                          if (confirm) {
+                            // logout
+                            saveData(currentUser);
+                            logout(context);
+                          } else {
+                            Navigator.pushReplacementNamed(context, '/profile');
+                          }
+                        },
                         icon: Icon(Icons.check),
-                        label: Text('Salva'))
+                        label: Text('Salva')),
+                    SizedBox(
+                      height: 60,
+                    ),
+                    Text('La modifica dei dati richiederà il logout*')
                   ],
                 ),
               ),

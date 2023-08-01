@@ -43,22 +43,19 @@ class User {
   Map<String, dynamic> getJsonMap() {
     return jsonMap;
   }
+
+  void setPosts(posts) {
+    this.posts = posts;
+  }
 }
 
 class AuthUser extends User {
   late String apiKey;
   late Map<String, dynamic> json;
 
-  AuthUser(this.json) : super(json) {
-    // apiKey = json['api_key'];
-  }
+  AuthUser(this.json) : super(json);
 
   AuthUser.vacand() : super.vacand();
-
-  // void readApiKey() {
-  //   apiKey = json['api_key'];
-  //   super.jsonMap.update('api_key', (value) => apiKey);
-  // }
 
   void setApiKey(apiKey) {
     this.apiKey = apiKey;

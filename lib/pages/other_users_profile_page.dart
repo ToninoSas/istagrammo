@@ -2,13 +2,15 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:instagram_app/dialogs/one_button_dialog.dart';
-import 'package:instagram_app/providers/user_data_service_provider.dart';
+import 'package:instagram_app/pages/followed_page.dart';
+import 'package:instagram_app/pages/followers_page.dart';
 import 'package:instagram_app/providers/user_provider.dart';
 
 import 'package:instagram_app/utils/api.dart' as api;
 import 'package:instagram_app/models/user.dart';
 
 import 'package:instagram_app/widgets/circle_box_widget.dart';
+import 'package:instagram_app/widgets/profile_post_thumb_widget.dart';
 import 'package:provider/provider.dart';
 
 class OtherUserProfilePage extends StatefulWidget {
@@ -41,11 +43,14 @@ class _OtherUserProfilePage_State extends State<OtherUserProfilePage> {
         Provider.of<UserProvider>(context, listen: false).userProfile;
 
     // prendo i follower dell utente
-    var otherUserFollowers =
-        await api.UserApi.getUserFollowers(otherUser.username);
+
+    otherUser.setPosts(await api.PostApi.getUserPosts(otherUser.username));
+
+    otherUser.followers = (
+        await api.UserApi.getUserFollowers(otherUser.username));
 
     // se tra i follower trovo l'utente corrente
-    for (var user in otherUserFollowers) {
+    for (var user in otherUser.followers) {
       if (user['username'] == currentUser.username) {
         // other user has already follow
         hasFollow = true;
@@ -149,19 +154,35 @@ class _OtherUserProfilePage_State extends State<OtherUserProfilePage> {
                             )),
                         Expanded(
                             flex: 1,
-                            child: Column(
-                              children: [
-                                Text(otherUser.nFollowers.toString()),
-                                Text('follower')
-                              ],
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) =>
+                                      FollowersPage(user: otherUser),
+                                ));
+                              },
+                              child: Column(
+                                children: [
+                                  Text(otherUser.nFollowers.toString()),
+                                  Text('follower')
+                                ],
+                              ),
                             )),
                         Expanded(
                             flex: 1,
-                            child: Column(
-                              children: [
-                                Text(otherUser.nSeguiti.toString()),
-                                Text('seguiti')
-                              ],
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) =>
+                                      FollowedPage(user: otherUser),
+                                ));
+                              },
+                              child: Column(
+                                children: [
+                                  Text(otherUser.nSeguiti.toString()),
+                                  Text('seguiti')
+                                ],
+                              ),
                             )),
                       ]),
                       Column(
@@ -206,6 +227,25 @@ class _OtherUserProfilePage_State extends State<OtherUserProfilePage> {
                                     child: Text('Condividi profilo'))),
                           ),
                         ],
+                      ),
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: GridView.builder(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 3,
+                                    crossAxisSpacing: 1,
+                                    mainAxisSpacing: 1),
+                            itemCount: otherUser.nPosts,
+                            itemBuilder: (context, index) {
+                              return UserProfilePostThumb(
+                                postInfo: otherUser.posts[index],
+                                owner: otherUser,
+                              );
+                            },
+                          ),
+                        ),
                       )
                     ],
                   ),

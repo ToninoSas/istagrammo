@@ -1,54 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:instagram_app/pages/other_users_profile_page.dart';
-import 'package:instagram_app/utils/func.dart';
+import 'package:http/http.dart';
 import 'package:instagram_app/models/user.dart';
-import 'package:instagram_app/widgets/bottom_navbar_widget.dart';
+import 'package:instagram_app/providers/user_provider.dart';
+import 'package:instagram_app/widgets/user_list_tile_widget.dart';
 
 import 'package:instagram_app/utils/api.dart' as api;
-import 'package:instagram_app/widgets/circle_box_widget.dart';
-import 'package:instagram_app/widgets/user_list_tile_widget.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/user_provider.dart';
+class FollowersPage extends StatefulWidget {
+  FollowersPage({super.key, required this.user});
 
-class MySearchPage extends StatefulWidget {
-  static const String pageRoute = '/search';
-
-  const MySearchPage({super.key});
+  User user;
 
   @override
-  _MySearchPage createState() => _MySearchPage();
+  State<FollowersPage> createState() => _FollowersPageState();
 }
 
-class _MySearchPage extends State<MySearchPage> {
-  int selectedIndex = routes['search']!;
+class _FollowersPageState extends State<FollowersPage> {
+  // late AuthUser currentUser;
 
-  // mantiene le info originali
+  late Future future = getData();
   List allUsers = [];
   List usersToShow = [];
 
-  // viene chiamato una sola volta
-  late Future future = getAllUsersData();
-
   TextEditingController _searchController = TextEditingController();
 
-  Future getAllUsersData() async {
-    var data = await api.getAllUsers();
+  Future getData() async {
+    var myData = await api.UserApi.getUserFollowers(widget.user.username);
 
-    // per mantenere le info originali
-    allUsers = data;
+    allUsers = myData;
     usersToShow = allUsers;
+
     return allUsers;
   }
 
   @override
-  //al posto di cercare le foto, cercherà gli utenti, quindi ci sarà una lista di utenti
   Widget build(BuildContext context) {
-    // User currentUser = UserDataServiceProvider.of(context).userData;
-    AuthUser currentUser = Provider.of<UserProvider>(context).userProfile;
-
     return SafeArea(
         child: Scaffold(
+            appBar: AppBar(
+              title: Text('Followers'),
+            ),
             body: Column(
               children: [
                 Padding(
@@ -97,9 +89,6 @@ class _MySearchPage extends State<MySearchPage> {
                   ),
                 )
               ],
-            ),
-            bottomNavigationBar: BottomNavBar(
-              selectedIndex: selectedIndex,
             )));
   }
 }

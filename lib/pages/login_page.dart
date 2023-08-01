@@ -1,9 +1,7 @@
 // ignore_for_file: prefer_const_constructors, unrelated_type_equality_checks
 
 import 'package:flutter/material.dart';
-import 'package:instagram_app/main_level.dart';
 import 'package:instagram_app/pages/home_page.dart';
-import 'package:instagram_app/providers/user_data_service_provider.dart';
 import 'package:instagram_app/providers/user_provider.dart';
 import 'package:instagram_app/utils/api.dart' as api;
 import 'package:instagram_app/models/user.dart';

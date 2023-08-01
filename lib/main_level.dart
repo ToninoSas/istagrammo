@@ -9,6 +9,7 @@ import 'package:instagram_app/providers/user_provider.dart';
 import 'package:instagram_app/utils/func.dart';
 import 'package:instagram_app/utils/api.dart' as api;
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 
 class MainLevelWidget extends StatelessWidget {
@@ -33,8 +34,14 @@ class MainLevelWidget extends StatelessWidget {
 
       // se l'apikey è valida, prendo il profilo dell'utente dal server
       String username = (await LocalStorage.getUserData())!.username;
+      print('1');
+      print(username);
       AuthUser userProfile = AuthUser(await api.UserApi.userProfile(username));
-      userProfile.posts = (await api.PostApi.getUserPosts(username));
+      print('2');
+
+      userProfile.setPosts(await api.PostApi.getUserPosts(username));
+      print('3');
+
       userProfile.setApiKey(apiKey);
       // lo salvo localmente
       // LocalStorage.saveUserData(userProfile);

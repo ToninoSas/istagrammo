@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
 
 import 'package:instagram_app/models/user.dart';
 
@@ -20,13 +21,18 @@ class Paths {
 
   static var allUserFollowers =
       (String username) => '/api/users/active/$username/followers';
+  static var allUserFollowed =
+      (String username) => '/api/users/active/$username/followed';
 
   static var userProfile = (String username) => '/api/users/active/$username';
 
   static var userPosts =
       (String username) => '/api/users/active/$username/posts';
-  static var userPost =
-      (String username, int postId) => '/api/users/active/$username/posts/$postId';
+  static var userPost = (String username, int postId) =>
+      '/api/users/active/$username/posts/$postId';
+
+  static var uploadPost =
+      (String username) => '/api/users/active/$username/posts/new';
 
   static var followUser = (String usernameToFollow, String username) =>
       '/api/users/active/$usernameToFollow/followers/$username';
@@ -58,13 +64,37 @@ class UserApi {
     return null;
   }
 
+  static modifyUserProfile(
+      {required AuthUser currentUser,
+      String? newUsername,
+      String? newBio}) async {
+    Uri url = Uri.http(host, Paths.userProfile(currentUser.username));
+
+    var data = {"api_key": currentUser.apiKey};
+
+    if (newUsername != null && newUsername != currentUser.username) {
+      data.update('new_username', (value) => value,
+          ifAbsent: () => newUsername);
+    }
+
+    if (newBio != null && newBio != currentUser.bio) {
+      data.update('new_bio', (value) => value, ifAbsent: () => newBio);
+    }
+
+    var response = await http.post(url, body: data);
+
+    print('ktm');
+
+    return response.statusCode;
+  }
+
   static followUser(String usernameToFollow, AuthUser currentUser) async {
     Uri url = Uri.http(
         host, Paths.followUser(usernameToFollow, currentUser.username));
 
     var response = await http.post(url, body: {"api_key": currentUser.apiKey});
 
-    print(response.body.toString());
+    // print(response.body.toString());
     print(response.statusCode);
 
     return response.statusCode;
@@ -78,7 +108,7 @@ class UserApi {
     var response =
         await http.delete(url, body: {"api_key": currentUser.apiKey});
 
-    print(response.body.toString());
+    // print(response.body.toString());
     print(response.statusCode);
 
     return response.statusCode;
@@ -90,14 +120,25 @@ class UserApi {
     var response = await http.get(url);
 
     print(response.statusCode);
-    print(response.body);
+    // print(response.body);
 
     var data = json.decode(response.body);
 
     return data;
   }
 
-  
+  static Future<List> getUserFollowed(String username) async {
+    Uri url = Uri.http(host, Paths.allUserFollowed(username));
+
+    var response = await http.get(url);
+
+    print(response.statusCode);
+    // print(response.body);
+
+    var data = json.decode(response.body);
+
+    return data;
+  }
 }
 
 class PostApi {
@@ -107,11 +148,34 @@ class PostApi {
     var response = await http.get(url);
 
     print(response.statusCode);
-    print(response.body);
+    // print(response.body);
 
     var data = json.decode(response.body);
 
     return data;
+  }
+
+  static uploadPost(
+      {required String username,
+      required XFile post,
+      String descr = ''}) async {
+    Uri url = Uri.http(host, Paths.uploadPost(username));
+
+    var request = http.MultipartRequest('POST', url);
+    request.files.add(http.MultipartFile(
+      'img',
+      post.readAsBytes().asStream(),
+      await post.length(),
+      filename: post.path.split('/').last,
+    ));
+
+    // aggiunge il campo descr, utilizza la funzione ifAbsent
+    request.fields.update('descr', (value) => descr, ifAbsent: (() => descr));
+
+    var response = await request.send();
+
+    print(response.statusCode);
+    print(await response.stream.bytesToString());
   }
 
   static getPost(String username, int postId) async {
@@ -120,30 +184,33 @@ class PostApi {
     var response = await http.get(url);
 
     print(response.statusCode);
-    print(response.body);
+    // print(response.body);
 
     var data = json.decode(response.body);
 
     return data;
   }
-  static addLike(String postOwner, String postId, String currentUsername) async {
+
+  static addLike(
+      String postOwner, String postId, String currentUsername) async {
     Uri url = Uri.http(host, Paths.like(postOwner, postId));
 
-    var response = await http.post(url, body: {'like_by':currentUsername});
+    var response = await http.post(url, body: {'like_by': currentUsername});
 
     print(response.statusCode);
-    print(response.body);
+    // print(response.body);
 
     return response.statusCode;
   }
 
-  static removeLike(String username, String postId, String currentUsername) async {
+  static removeLike(
+      String username, String postId, String currentUsername) async {
     Uri url = Uri.http(host, Paths.like(username, postId));
 
-    var response = await http.delete(url, body: {'like_by':currentUsername});
+    var response = await http.delete(url, body: {'like_by': currentUsername});
 
     print(response.statusCode);
-    print(response.body);
+    // print(response.body);
 
     return response.statusCode;
   }

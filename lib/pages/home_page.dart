@@ -1,8 +1,8 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/material.dart';
-import 'package:instagram_app/providers/user_data_service_provider.dart';
 import 'package:instagram_app/utils/func.dart';
 
-import 'package:instagram_app/widgets/post_widget.dart';
 import 'package:instagram_app/widgets/circle_box_widget.dart';
 import 'package:instagram_app/widgets/bottom_navbar_widget.dart';
 import 'package:provider/provider.dart';
