@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:instagram_app/pages/other_users_profile_page.dart';
 import 'package:instagram_app/utils/func.dart';
 import 'package:instagram_app/models/user.dart';
 import 'package:instagram_app/widgets/bottom_navbar_widget.dart';
 
 import 'package:instagram_app/utils/api.dart' as api;
-import 'package:instagram_app/widgets/circle_box_widget.dart';
 import 'package:instagram_app/widgets/user_list_tile_widget.dart';
 import 'package:provider/provider.dart';
 

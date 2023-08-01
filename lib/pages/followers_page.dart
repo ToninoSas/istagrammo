@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:instagram_app/models/user.dart';
-import 'package:instagram_app/providers/user_provider.dart';
 import 'package:instagram_app/widgets/user_list_tile_widget.dart';
 
 import 'package:instagram_app/utils/api.dart' as api;
-import 'package:provider/provider.dart';
 
 class FollowersPage extends StatefulWidget {
   FollowersPage({super.key, required this.user});
