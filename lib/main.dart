@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_app/main_level.dart';
 // import 'package:instagram_app/main_level.dart';
-import 'package:instagram_app/pages/login_page.dart';
+import 'package:instagram_app/pages/auth/login_page.dart';
+import 'package:instagram_app/pages/auth/register_page.dart';
 import 'package:instagram_app/pages/modify_profile_page.dart';
 import 'package:instagram_app/pages/search_page.dart';
 import 'package:instagram_app/pages/profile_page.dart';
@@ -18,6 +19,7 @@ import 'pages/home_page.dart';
 void main() {
   // runApp(UserDataServiceProvider(userData: AuthUser.vacand(), child: MyApp()));
   runApp(MyApp());
+  debugPrint = (String? message, {int? wrapWidth}) {};
 }
 
 class MyApp extends StatelessWidget {
@@ -32,12 +34,14 @@ class MyApp extends StatelessWidget {
           theme: lightTeam(),
           home: MainLevelWidget(),
           debugShowCheckedModeBanner: false,
+        
           routes: {
             MyHomePage.pageRoute: (context) => const MyHomePage(),
             MySearchPage.pageRoute: (context) => const MySearchPage(),
             ProfilePage.pageRoute: (context) => const ProfilePage(),
             ModifyProfilePage.pageRoute: (context) => const ModifyProfilePage(),
             MyLoginPage.pageRoute: (context) => MyLoginPage(),
+            RegisterPage.pageRoute: (context) => RegisterPage(),
             UploadPostPage.pageRoute:(context) => UploadPostPage()
             // OtherPlayerProfilePage.pageRoute: (context) => OtherPlayerProfilePage(user: '')
           },

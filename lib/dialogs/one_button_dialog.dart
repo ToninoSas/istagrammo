@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-oneButtonDialog(BuildContext context, String text) {
+Future<bool?> oneButtonDialog(BuildContext context, String text) async {
   // set up the button
   Widget okButton = TextButton(
     child: const Text("OK"),
     onPressed: () {
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(true);
     },
   );
 
@@ -19,7 +19,7 @@ oneButtonDialog(BuildContext context, String text) {
   );
 
   // show the dialog
-  showDialog(
+  return await showDialog<bool>(
     context: context,
     builder: (BuildContext context) {
       return alert;

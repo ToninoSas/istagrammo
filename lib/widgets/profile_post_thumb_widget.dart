@@ -32,6 +32,8 @@ class _UserProfilePost extends State<UserProfilePostThumb> {
         (await api.PostApi.getPost(widget.owner.username, postId));
     postToOpen = Post.loadPost(json: postJsonInfo);
     postToOpen.ownerUser = widget.owner;
+
+    print('muori');
   }
 
   @override

@@ -14,38 +14,43 @@ String host = kIsWeb
         ? '10.0.2.2:5000'
         : '127.0.0.1:5000';
 
+// String host = '204.216.216.99';
+
 class Paths {
-  static String login = '/api/users/login';
-  static String newUser = '/api/users/new';
-  static String allUsers = '/api/users';
+  static String login = '/instagram/api/users/login';
+  static String newUser = '/instagram/api/users/new';
+  static String allUsers = '/instagram/api/users';
 
   static var allUserFollowers =
-      (String username) => '/api/users/active/$username/followers';
+      (String username) => '/instagram/api/users/active/$username/followers';
   static var allUserFollowed =
-      (String username) => '/api/users/active/$username/followed';
+      (String username) => '/instagram/api/users/active/$username/followed';
 
-  static var userProfile = (String username) => '/api/users/active/$username';
+  static var userProfile = (String username) => '/instagram/api/users/active/$username';
 
   static var userPosts =
-      (String username) => '/api/users/active/$username/posts';
+      (String username) => '/instagram/api/users/active/$username/posts';
   static var userPost = (String username, int postId) =>
-      '/api/users/active/$username/posts/$postId';
+      '/instagram/api/users/active/$username/posts/$postId';
 
   static var uploadPost =
-      (String username) => '/api/users/active/$username/posts/new';
+      (String username) => '/instagram/api/users/active/$username/posts/new';
+
+  static var setProfileImg =
+      (String username) => '/instagram/api/users/active/$username/profile_img';
 
   static var followUser = (String usernameToFollow, String username) =>
-      '/api/users/active/$usernameToFollow/followers/$username';
+      '/instagram/api/users/active/$usernameToFollow/followers/$username';
 
   static var removeFollowUser = (String usernameToRemoveFollow,
           String username) =>
-      '/api/users/active/$usernameToRemoveFollow/followers/$username/remove';
+      '/instagram/api/users/active/$usernameToRemoveFollow/followers/$username/remove';
 
-  static String syn = '/api/auth/syn';
-  static String logOut = '/api/auth/logout';
+  static String syn = '/instagram/api/auth/syn';
+  static String logOut = '/instagram/api/auth/logout';
 
   static var like = (String username, String postId) =>
-      '/api/users/active/$username/posts/$postId/likes';
+      '/instagram/api/users/active/$username/posts/$postId/likes';
 }
 
 class UserApi {
@@ -58,13 +63,27 @@ class UserApi {
     var data = json.decode(response.body);
 
     if (response.statusCode == 200) {
+      print('Getting $username profile... ${response.statusCode}');
       return data;
     }
 
     return null;
   }
 
-  static modifyUserProfile(
+  static Future<dynamic> addNewUser(
+      String username, String password, String email) async {
+    // Uri url = Uri.http(host, '${PATHS['user_profile']!}$username');
+    Uri url = Uri.http(host, Paths.newUser);
+
+    var response = await http.post(url,
+        body: {'username': username, 'password': password, 'email': email});
+    
+    print('Aggiunta di $username al db: ${response.statusCode}');
+
+    return response.statusCode;
+  }
+
+  static Future<int> modifyUserProfile(
       {required AuthUser currentUser,
       String? newUsername,
       String? newBio}) async {
@@ -83,9 +102,30 @@ class UserApi {
 
     var response = await http.post(url, body: data);
 
-    print('ktm');
-
     return response.statusCode;
+  }
+
+  static setProfilePic(
+      {required AuthUser currentUser, required XFile profilePic}) async {
+    Uri url = Uri.http(host, Paths.setProfileImg(currentUser.username));
+
+    var request = http.MultipartRequest('POST', url);
+
+    request.files.add(http.MultipartFile(
+      'profile_img',
+      profilePic.readAsBytes().asStream(),
+      await profilePic.length(),
+      filename: profilePic.path.split('/').last,
+    ));
+
+    request.fields.update('api_key', (value) => currentUser.apiKey,
+        ifAbsent: () => currentUser.apiKey);
+
+    var response = await request.send();
+
+    print(
+        'Profile pic changing for ${currentUser.username}.. ${response.statusCode}');
+    print('Profile pic url ${await response.stream.bytesToString()}');
   }
 
   static followUser(String usernameToFollow, AuthUser currentUser) async {
@@ -94,8 +134,7 @@ class UserApi {
 
     var response = await http.post(url, body: {"api_key": currentUser.apiKey});
 
-    // print(response.body.toString());
-    print(response.statusCode);
+    print('Following user... ${response.statusCode}');
 
     return response.statusCode;
   }
@@ -108,8 +147,7 @@ class UserApi {
     var response =
         await http.delete(url, body: {"api_key": currentUser.apiKey});
 
-    // print(response.body.toString());
-    print(response.statusCode);
+    print('Remove following user... ${response.statusCode}');
 
     return response.statusCode;
   }
@@ -119,10 +157,9 @@ class UserApi {
 
     var response = await http.get(url);
 
-    print(response.statusCode);
-    // print(response.body);
-
     var data = json.decode(response.body);
+
+    print('$username followers... ${response.statusCode}');
 
     return data;
   }
@@ -132,10 +169,8 @@ class UserApi {
 
     var response = await http.get(url);
 
-    print(response.statusCode);
-    // print(response.body);
-
     var data = json.decode(response.body);
+    print('$username followed... ${response.statusCode}');
 
     return data;
   }
@@ -147,19 +182,17 @@ class PostApi {
 
     var response = await http.get(url);
 
-    print(response.statusCode);
-    // print(response.body);
-
     var data = json.decode(response.body);
+    print('$username posts... ${response.statusCode}');
 
     return data;
   }
 
   static uploadPost(
-      {required String username,
+      {required AuthUser currentUser,
       required XFile post,
       String descr = ''}) async {
-    Uri url = Uri.http(host, Paths.uploadPost(username));
+    Uri url = Uri.http(host, Paths.uploadPost(currentUser.username));
 
     var request = http.MultipartRequest('POST', url);
     request.files.add(http.MultipartFile(
@@ -171,11 +204,13 @@ class PostApi {
 
     // aggiunge il campo descr, utilizza la funzione ifAbsent
     request.fields.update('descr', (value) => descr, ifAbsent: (() => descr));
+    request.fields.update('api_key', (value) => currentUser.apiKey,
+        ifAbsent: () => currentUser.apiKey);
 
     var response = await request.send();
 
-    print(response.statusCode);
-    print(await response.stream.bytesToString());
+    print('new post for ${currentUser.username}... ${response.statusCode}');
+    print('post url: ${await response.stream.bytesToString()}');
   }
 
   static getPost(String username, int postId) async {
@@ -183,34 +218,34 @@ class PostApi {
 
     var response = await http.get(url);
 
-    print(response.statusCode);
-    // print(response.body);
+    print('$username posts id $postId loads.. ${response.statusCode}');
 
     var data = json.decode(response.body);
 
     return data;
   }
 
-  static addLike(
-      String postOwner, String postId, String currentUsername) async {
+  static addLike(String postOwner, String postId, AuthUser currentUser) async {
     Uri url = Uri.http(host, Paths.like(postOwner, postId));
 
-    var response = await http.post(url, body: {'like_by': currentUsername});
+    var response = await http.post(url,
+        body: {'like_by': currentUser.username, 'api_key': currentUser.apiKey});
 
-    print(response.statusCode);
-    // print(response.body);
+    print(
+        'Adding like to $postOwner from ${currentUser.username}... ${response.statusCode}');
 
     return response.statusCode;
   }
 
   static removeLike(
-      String username, String postId, String currentUsername) async {
+      String username, String postId, AuthUser currentUser) async {
     Uri url = Uri.http(host, Paths.like(username, postId));
 
-    var response = await http.delete(url, body: {'like_by': currentUsername});
+    var response = await http.delete(url,
+        body: {'like_by': currentUser.username, 'api_key': currentUser.apiKey});
 
-    print(response.statusCode);
-    // print(response.body);
+    print(
+        'Remove like to $username from ${currentUser.username}... ${response.statusCode}');
 
     return response.statusCode;
   }
@@ -228,6 +263,8 @@ class Auth {
     if (response.statusCode == 200) {
       String apiKey = data['api_key'];
 
+      print('Login for $username.... ${response.statusCode}');
+
       return apiKey;
     }
 
@@ -242,6 +279,8 @@ class Auth {
     // var data = json.decode(response.body);
 
     if (response.statusCode == 200) {
+      print('Syn... ${response.statusCode}');
+
       return true;
     }
 
@@ -252,8 +291,7 @@ class Auth {
     Uri url = Uri.http(host, Paths.logOut);
     var response = await http.delete(url, body: {'api_key': apiKey});
 
-    print(response.statusCode);
-    print(response.body);
+    print('Logout ... ${response.statusCode}');
 
     return response.statusCode;
   }

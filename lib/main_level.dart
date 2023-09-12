@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:instagram_app/pages/home_page.dart';
-import 'package:instagram_app/pages/login_page.dart';
+import 'package:instagram_app/pages/auth/login_page.dart';
 import 'package:instagram_app/models/user.dart';
 import 'package:instagram_app/providers/user_provider.dart';
 import 'package:instagram_app/utils/func.dart';

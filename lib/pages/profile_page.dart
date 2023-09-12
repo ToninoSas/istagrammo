@@ -63,6 +63,7 @@ class _ProfilePage_State extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    print('Ho aggiornato lo stato');
     // carico l'utente in memoria
     getUserData(context);
 

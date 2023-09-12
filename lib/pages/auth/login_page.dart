@@ -63,9 +63,14 @@ class MyLoginPage extends StatelessWidget {
                 ),
                 const Padding(
                   padding: EdgeInsets.all(24.0),
-                  child: Text(
-                    'Instagram',
-                    style: TextStyle(fontSize: 24),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Instagram',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                      // Text('Login', style: TextStyle(fontSize: 18))
+                    ],
                   ),
                 ),
                 const SizedBox(
@@ -82,6 +87,7 @@ class MyLoginPage extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.all(16.0),
                   child: TextField(
+                    obscureText: true,
                     controller: _passwordController,
                     decoration:
                         InputDecoration(labelText: 'Inserisci password'),
@@ -93,8 +99,17 @@ class MyLoginPage extends StatelessWidget {
                     },
                     child: const Text('Login')),
                 const SizedBox(
+                  height: 10,
+                ),
+                ElevatedButton(
+                  child: Text('Oppure registrati'),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/register');
+                  },
+                ),
+                const SizedBox(
                   height: 25,
-                )
+                ),
               ],
             ),
           ),

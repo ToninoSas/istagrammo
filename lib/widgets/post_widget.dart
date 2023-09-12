@@ -49,14 +49,14 @@ class _Post extends State<PostWidget> {
         widget.openedPost.id.toString(),
         Provider.of<UserProvider>(context, listen: false)
             .userProfile
-            .username));
+            ));
   }
 
   removeLikeApi(context) async {
     return await api.PostApi.removeLike(
         widget.openedPost.ownerName,
         widget.openedPost.id.toString(),
-        Provider.of<UserProvider>(context, listen: false).userProfile.username);
+        Provider.of<UserProvider>(context, listen: false).userProfile);
   }
 
   addComment() async {}

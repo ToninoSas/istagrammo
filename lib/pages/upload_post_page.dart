@@ -27,9 +27,8 @@ class _UploadPostPage_State extends State<UploadPostPage> {
   saveData() async {
     //save new data
     await api.PostApi.uploadPost(
-        username: Provider.of<UserProvider>(context, listen: false)
-            .userProfile
-            .username,
+        currentUser: Provider.of<UserProvider>(context, listen: false)
+            .userProfile,
         post: imageToUpload,
         descr: _postDescrController.text);
   }

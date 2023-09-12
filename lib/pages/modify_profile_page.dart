@@ -26,15 +26,17 @@ class _ModifyProfilePage_State extends State<ModifyProfilePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
 
-  saveData(AuthUser currentUser) async {
+  Future<int> saveData(AuthUser currentUser) async {
     String newName = _nameController.text;
     String newBio = _bioController.text;
 
-    if (await api.UserApi.modifyUserProfile(
-            currentUser: currentUser, newUsername: newName, newBio: newBio) ==
-        200) {
-      setState(() {});
+    if (changedProfilePic) {
+      await api.UserApi.setProfilePic(
+          currentUser: currentUser, profilePic: newProfilePicFile);
     }
+
+    return await api.UserApi.modifyUserProfile(
+        currentUser: currentUser, newUsername: newName, newBio: newBio);
 
     //return to profile page
   }
@@ -48,27 +50,29 @@ class _ModifyProfilePage_State extends State<ModifyProfilePage> {
     Navigator.pushReplacementNamed(context, '/login');
   }
 
+  late ImageProvider finalImg;
+  late XFile newProfilePicFile;
+  bool changedProfilePic = false;
+
+  _getImageFromGallery() async {
+    XFile? pickedFile =
+        (await ImagePicker().pickImage(source: ImageSource.gallery));
+
+    if (pickedFile != null) {
+      return pickedFile;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+
     AuthUser currentUser = Provider.of<UserProvider>(context).userProfile;
     _nameController.text = currentUser.username;
     _bioController.text = currentUser.bio;
 
-    XFile? newProfilePicFile;
-    Image newProfilePicImage;
-  
-    ImageProvider finalImg = NetworkImage(currentUser.profileImgUrl);
-
-    _getImageFromGallery() async {
-      XFile? pickedFile =
-          (await ImagePicker().pickImage(source: ImageSource.gallery));
-
-      if (pickedFile != null) {
-        return pickedFile;
-      }
+    if (!changedProfilePic) {
+      finalImg = NetworkImage(currentUser.profileImgUrl);
     }
-
-    // TODO aggiungere la modifica dell'immagine profilo
 
     return Scaffold(
       appBar: AppBar(
@@ -98,12 +102,13 @@ class _ModifyProfilePage_State extends State<ModifyProfilePage> {
                         ElevatedButton(
                             onPressed: () async {
                               newProfilePicFile = await _getImageFromGallery();
-                              newProfilePicImage =
-                                  Image.file(File(newProfilePicFile!.path));
+                              Image newProfilePicImage =
+                                  Image.file(File(newProfilePicFile.path));
 
                               setState(() {
                                 finalImg = newProfilePicImage.image;
-                                print('ktm');
+                                changedProfilePic = true;
+                                // print('ktm');
                               });
 
                               print(finalImg.toString());
@@ -139,8 +144,9 @@ class _ModifyProfilePage_State extends State<ModifyProfilePage> {
 
                           if (confirm) {
                             // logout
-                            saveData(currentUser);
-                            logout(context);
+                            if(await saveData(currentUser) == 200) {
+                              await logout(context);
+                            }
                           } else {
                             Navigator.pushReplacementNamed(context, '/profile');
                           }
