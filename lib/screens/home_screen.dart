@@ -8,7 +8,7 @@ import 'package:instagram_app/widgets/bottom_navbar_widget.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart';
-import '../providers/user_provider.dart';
+import '../providers/app_state.dart';
 
 // import 'package:instagram_app/func.dart';
 

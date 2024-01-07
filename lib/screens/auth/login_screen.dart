@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:instagram_app/pages/home_page.dart';
-import 'package:instagram_app/providers/user_provider.dart';
+import 'package:instagram_app/providers/app_state.dart';
 import 'package:instagram_app/utils/api.dart' as api;
 import 'package:instagram_app/models/user.dart';
 
