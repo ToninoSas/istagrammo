@@ -2,40 +2,41 @@
 
 import 'package:flutter/material.dart';
 import 'package:instagram_app/dialogs/one_button_dialog.dart';
-import 'package:instagram_app/pages/auth/login_page.dart';
-import 'package:instagram_app/utils/api.dart' as api;
+import 'package:instagram_app/methods/auth_methods.dart';
+import 'package:instagram_app/screens/auth/login_screen.dart';
+import 'package:instagram_app/utils/func.dart';
 
 //stateless quindi quando si fa hot refresh si perdono i dati nei text field
-class RegisterPage extends StatefulWidget {
-  RegisterPage({super.key});
+class RegisterScreen extends StatefulWidget {
+  RegisterScreen({super.key});
 
   static const String pageRoute = '/register';
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _usernameController = TextEditingController();
-
   final TextEditingController _passwordController = TextEditingController();
-
   final TextEditingController _emailController = TextEditingController();
 
-  String error = '';
+  final _formKey = GlobalKey<FormState>();
 
-  Future<int> register() async {
+  Future register() async {
     String username = _usernameController.text;
     String password = _passwordController.text;
     String email = _emailController.text;
 
-    var code = await api.UserApi.addNewUser(username, password, email);
+    String msg = await AuthMethods()
+        .registraUtente(username: username, email: email, password: password);
 
-  
-    return code;
+    if (msg != "") {
+      showSnackBar(msg, context);
+    } else {
+      showSnackBar("Registrazione effettuata", context);
+    }
   }
-
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -111,25 +112,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ElevatedButton(
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          int code = await register();
-                          if (code== 200) {
-                            bool? ok = await oneButtonDialog(context,
-                                'Registrazione effettuata!\nOra effettua il login');
-
-                            if (ok != null && ok) {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => MyLoginPage()));
-                            }
-                          } else if(code == 409){
-                            oneButtonDialog(context,
-                                'Username con quel nome già esistente.\nRiprovare');
-                          }
-                          else{
-                            oneButtonDialog(context,
-                                'Errore nella registrazione.\nRiprovare');
-                          }
+                          register();
                         }
                       },
                       child: const Text('Register')),

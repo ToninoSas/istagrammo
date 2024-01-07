@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_app/methods/auth_methods.dart';
 import 'package:instagram_app/models/user.dart';
+import 'package:instagram_app/providers/app_state.dart';
+import 'package:instagram_app/utils/func.dart';
+import 'package:provider/provider.dart';
 
-class UserProfileDrower extends StatelessWidget {
-  UserProfileDrower(
-      {super.key, required this.userProfile, required this.logoutFunction});
+class UserProfileDrower extends StatefulWidget {
+  const UserProfileDrower({super.key});
 
-  AuthUser userProfile;
-  var logoutFunction;
+  @override
+  State<UserProfileDrower> createState() => _UserProfileDrowerState();
+}
 
+class _UserProfileDrowerState extends State<UserProfileDrower> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: ListView(
+        child: Consumer<UserProvider>(builder: (context, provider, child) {
+      MyUser user = provider.getUser;
+
+      return ListView(
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text(userProfile.username),
-            accountEmail: Text(userProfile.email),
-            currentAccountPicture:
-                const CircleAvatar(backgroundImage: AssetImage('images/img1.jpg')),
+            accountName: Text(user.username),
+            accountEmail: Text(user.email),
+            currentAccountPicture: const CircleAvatar(
+                backgroundImage: AssetImage('images/img1.jpg')),
             arrowColor: Colors.black,
             decoration: const BoxDecoration(
               color: Colors.grey,
@@ -27,13 +35,13 @@ class UserProfileDrower extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: Text(userProfile.username),
+            title: Text(user.username),
             leading: const Icon(Icons.person),
             subtitle: const Text("username"),
             onTap: () {},
           ),
           ListTile(
-            title: Text(userProfile.email),
+            title: Text(user.email),
             leading: const Icon(Icons.email),
             subtitle: const Text("email"),
             onTap: () {},
@@ -43,21 +51,24 @@ class UserProfileDrower extends StatelessWidget {
             title: Text('Settings'),
             leading: Icon(Icons.settings),
           ),
-          ListTile(
-            title: Text(userProfile.apiKey),
-            subtitle: const Text("Api Key"),
-            leading: const Icon(Icons.key),
-          ),
+          // ListTile(
+          //   title: Text(userProfile.apiKey),
+          //   subtitle: const Text("Api Key"),
+          //   leading: const Icon(Icons.key),
+          // ),
           ListTile(
             title: const Text('Logout'),
             leading: const Icon(Icons.logout),
             onTap: () {
-              logoutFunction(context);
-              // logout(context);
+              AuthMethods().logout().then((value) {
+                showSnackBar('Logout effettuato!', context);
+                Navigator.pop(context);
+              Navigator.of(context).pushReplacementNamed('/login');
+              });
             },
           )
         ],
-      ),
-    );
+      );
+    }));
   }
 }

@@ -4,7 +4,7 @@ class Post {
   late int id;
   late String url, ownerName;
 
-  late User ownerUser;
+  late MyUser ownerUser;
 
   late var comments = [], likes = [], descr = "";
 

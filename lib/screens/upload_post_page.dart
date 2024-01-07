@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:instagram_app/providers/user_provider.dart';
+import 'package:instagram_app/providers/app_state.dart';
 
 import 'package:instagram_app/utils/api.dart' as api;
 import 'package:provider/provider.dart';
@@ -26,11 +26,12 @@ class _UploadPostPage_State extends State<UploadPostPage> {
 
   saveData() async {
     //save new data
-    await api.PostApi.uploadPost(
-        currentUser: Provider.of<UserProvider>(context, listen: false)
-            .userProfile,
-        post: imageToUpload,
-        descr: _postDescrController.text);
+    // TODO
+    // await api.PostApi.uploadPost(
+    //     currentUser: Provider.of<UserProvider>(context, listen: false)
+    //         .userProfile,
+    //     post: imageToUpload,
+    //     descr: _postDescrController.text);
   }
 
   _getImageFromGallery() async {

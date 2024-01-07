@@ -12,34 +12,30 @@ import '../providers/app_state.dart';
 
 // import 'package:instagram_app/func.dart';
 
-class MyHomePage extends StatefulWidget {
+class HomeScreen extends StatefulWidget {
   static const String pageRoute = '/home';
 
-  const MyHomePage({super.key});
+  const HomeScreen({super.key});
 
   // final User currentUser;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MyHomeScreenState createState() => _MyHomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomeScreenState extends State<HomeScreen> {
   int selectedIndex = routes['home']!;
 
   // String name = "ToninoSas";
 
   @override
   Widget build(BuildContext context) {
-    // User user = UserDataServiceProvider.of(context).userData;
-
-    AuthUser user = Provider.of<UserProvider>(context).userProfile;
-
     return Scaffold(
         appBar: AppBar(
           //remove arrow back
           automaticallyImplyLeading: false,
           elevation: 0,
-          backgroundColor: Theme.of(context).primaryColor,
+          // backgroundColor: Theme.of(context).primaryColor,
           title: const Text('Instagram'),
           actions: <Widget>[
             IconButton(
@@ -59,28 +55,28 @@ class _MyHomePageState extends State<MyHomePage> {
             itemBuilder: (context, index) {
               if (index == 0) {
                 //story viewer
-                return Column(
-                  children: [
-                    const Divider(
-                      height: 2,
-                      thickness: 2,
-                    ),
-                    Container(
-                        color: Theme.of(context).primaryColor,
-                        height: 90,
-                        child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: List.generate(10, (int index) {
-                              return CircleBox(
-                                imageProvider: AssetImage("images/img1.jpg"),
-                              );
-                            }))),
-                    const Divider(
-                      height: 0,
-                      thickness: 2,
-                    ),
-                  ],
-                );
+                // return Column(
+                //   children: [
+                //     const Divider(
+                //       height: 2,
+                //       thickness: 2,
+                //     ),
+                //     Container(
+                //         color: Theme.of(context).primaryColor,
+                //         height: 90,
+                //         child: ListView(
+                //             scrollDirection: Axis.horizontal,
+                //             children: List.generate(10, (int index) {
+                //               return CircleBox(
+                //                 imageProvider: AssetImage("images/img1.jpg"),
+                //               );
+                //             }))),
+                //     const Divider(
+                //       height: 0,
+                //       thickness: 2,
+                //     ),
+                //   ],
+                // );
               }
               // return PostWidget(userPostName: user.username);
               return Container();

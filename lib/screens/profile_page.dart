@@ -1,16 +1,13 @@
 // ignore_for_file: file_names, prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:instagram_app/methods/auth_methods.dart';
 import 'package:instagram_app/models/user.dart';
-import 'package:instagram_app/pages/followed_page.dart';
-import 'package:instagram_app/pages/followers_page.dart';
-import 'package:instagram_app/providers/user_provider.dart';
-import 'package:instagram_app/utils/api.dart' as api;
+import 'package:instagram_app/providers/app_state.dart';
 
 import 'package:instagram_app/widgets/circle_box_widget.dart';
 import 'package:instagram_app/widgets/bottom_navbar_widget.dart';
 import 'package:instagram_app/utils/func.dart';
-import 'package:instagram_app/widgets/profile_post_thumb_widget.dart';
 import 'package:instagram_app/widgets/user_profile_drower_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -30,52 +27,23 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePage_State extends State<ProfilePage> {
   int selectedIndex = routes['profile']!;
 
-  late AuthUser userProfile;
-
-  Future<void> refreshData(context) async {
-    AuthUser oldProfile =
-        Provider.of<UserProvider>(context, listen: false).userProfile;
-
-    // prendo le informazioni aggiornate dal db
-    userProfile = AuthUser(await api.UserApi.userProfile(oldProfile.username));
-    var userPosts = await api.PostApi.getUserPosts(oldProfile.username);
-
-    userProfile.setPosts(userPosts);
-    userProfile.setApiKey(oldProfile.apiKey);
-
-    Provider.of<UserProvider>(context, listen: false).updateUser(userProfile);
-
-    // per aggiornare lo stato e caricare i nuovi dati
-    setState(() {});
-  }
-
-  getUserData(context) {
-    userProfile = Provider.of<UserProvider>(context, listen: false).userProfile;
-  }
-
-  logout(context) async {
-    userProfile = Provider.of<UserProvider>(context, listen: false).userProfile;
-    await LocalStorage.logout();
-    await api.Auth.logout(userProfile.apiKey);
-
-    Navigator.pushReplacementNamed(context, '/login');
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    print('Ho aggiornato lo stato');
-    // carico l'utente in memoria
-    getUserData(context);
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        MyUser user = userProvider.getUser;
 
-    return RefreshIndicator(
-        onRefresh: () {
-          return refreshData(context);
-        },
-        child: Scaffold(
+        return Scaffold(
             appBar: AppBar(
               elevation: 0,
-              backgroundColor: Theme.of(context).primaryColor,
-              title: Text(userProfile.username),
+              // backgroundColor: Theme.of(context).primaryColor,
+              title: Text(user.username),
               actions: [
                 IconButton(
                     onPressed: () {
@@ -97,15 +65,14 @@ class _ProfilePage_State extends State<ProfilePage> {
                         Expanded(
                           flex: 1,
                           child: CircleBox(
-                            imageProvider:
-                                NetworkImage(userProfile.profileImgUrl),
+                            imageProvider: NetworkImage(user.profileImgUrl),
                           ),
                         ),
                         Expanded(
                             flex: 1,
                             child: Column(
                               children: [
-                                Text(userProfile.nPosts.toString()),
+                                Text(user.posts.length.toString()),
                                 Text('post')
                               ],
                             )),
@@ -113,14 +80,14 @@ class _ProfilePage_State extends State<ProfilePage> {
                             flex: 1,
                             child: InkWell(
                               onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) =>
-                                      FollowersPage(user: userProfile),
-                                ));
+                                // Navigator.of(context).push(MaterialPageRoute(
+                                //   builder: (context) =>
+                                //       FollowersPage(user: appState.currentUser),
+                                // ));
                               },
                               child: Column(
                                 children: [
-                                  Text(userProfile.nFollowers.toString()),
+                                  Text(user.followers.length.toString()),
                                   Text('follower')
                                 ],
                               ),
@@ -129,14 +96,14 @@ class _ProfilePage_State extends State<ProfilePage> {
                             flex: 1,
                             child: InkWell(
                               onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) =>
-                                      FollowedPage(user: userProfile),
-                                ));
+                                // Navigator.of(context).push(MaterialPageRoute(
+                                //   builder: (context) =>
+                                //       FollowedPage(user: appState.currentUser),
+                                // ));
                               },
                               child: Column(
                                 children: [
-                                  Text(userProfile.nSeguiti.toString()),
+                                  Text(user.followed.length.toString()),
                                   Text('seguiti')
                                 ],
                               ),
@@ -152,7 +119,7 @@ class _ProfilePage_State extends State<ProfilePage> {
                           Padding(
                             padding: EdgeInsets.all(2),
                             child: Text(
-                              userProfile.bio,
+                              user.bio,
                               textAlign: TextAlign.start,
                             ),
                           ),
@@ -186,31 +153,32 @@ class _ProfilePage_State extends State<ProfilePage> {
                     ],
                   ),
                   // posts
-                  Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 1,
-                            mainAxisSpacing: 1),
-                        itemCount: userProfile.nPosts,
-                        itemBuilder: (context, index) {
-                          return UserProfilePostThumb(
-                            postInfo: userProfile.posts[index],
-                            owner: userProfile,
-                          );
-                        },
-                      ),
-                    ),
-                  )
+                  // Flexible(
+                  //   child: Padding(
+                  //     padding: const EdgeInsets.only(top: 16),
+                  //     child: GridView.builder(
+                  //       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  //           crossAxisCount: 3,
+                  //           crossAxisSpacing: 1,
+                  //           mainAxisSpacing: 1),
+                  //       itemCount: appState.currentUser.nPosts,
+                  //       itemBuilder: (context, index) {
+                  //         return UserProfilePostThumb(
+                  //           postInfo: appState.currentUser.posts[index],
+                  //           owner: appState.currentUser,
+                  //         );
+                  //       },
+                  //     ),
+                  //   ),
+                  // )
                 ],
               ),
             ),
             bottomNavigationBar: BottomNavBar(
               selectedIndex: selectedIndex,
             ),
-            drawer: UserProfileDrower(
-                userProfile: userProfile, logoutFunction: logout)));
+            drawer: UserProfileDrower());
+      },
+    );
   }
 }

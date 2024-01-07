@@ -1,8 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user.dart';
 
 var routes = {'home': 0, 'search': 1, 'profile': 2};
 
@@ -29,59 +25,63 @@ void modifyProfile(context) {
   Navigator.pushNamed(context, '/modify_profile');
 }
 
+showSnackBar(String txt, BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(txt)));
+}
+
 class LocalStorage {
   // static SharedPreferences prefs;
 
-  static saveUserData(User user) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final userDataJson = jsonEncode(user.getJsonMap());
-
-    prefs.setString('userData', userDataJson);
-  }
-
-  static Future<AuthUser?> getUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    // Retrieve the JSON string from shared preferences
-    final userDataJson = prefs.getString('userData');
-    if (userDataJson != null) {
-      // If the JSON string exists, parse it into a UserDataModel object
-      final userData = AuthUser(jsonDecode(userDataJson));
-      return userData;
-    }
-    return null; // Return null if no user data is found
-  }
-
-  static login(User userdata, String apiKey) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool('loggedIn', true);
-
-    print('LOGIN EFFETTUATO E DATI SALVATI');
-
-    await saveUserData(userdata);
-    await saveApiKey(apiKey);
-  }
-
-  static logout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    // prefs.setBool('loggedIn', false);
-    prefs.clear();
-  }
-
-  static Future<bool> isLoggedIn() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool state = prefs.getBool('loggedIn') ?? false;
-
-    return state;
-  }
-
-  static saveApiKey(String apiKey) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('api_key', apiKey);
-  }
-
-  static getApiKey() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('api_key');
-  }
+  // static saveUserData(User user) async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //
+  //   final userDataJson = jsonEncode(user.getJsonMap());
+  //
+  //   prefs.setString('userData', userDataJson);
+  // }
+  //
+  // static Future<AuthUser?> getUserData() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   // Retrieve the JSON string from shared preferences
+  //   final userDataJson = prefs.getString('userData');
+  //   if (userDataJson != null) {
+  //     // If the JSON string exists, parse it into a UserDataModel object
+  //     final userData = AuthUser(jsonDecode(userDataJson));
+  //     return userData;
+  //   }
+  //   return null; // Return null if no user data is found
+  // }
+  //
+  // static login(User userdata, String apiKey) async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   prefs.setBool('loggedIn', true);
+  //
+  //   print('LOGIN EFFETTUATO E DATI SALVATI');
+  //
+  //   await saveUserData(userdata);
+  //   await saveApiKey(apiKey);
+  // }
+  //
+  // static logout() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   // prefs.setBool('loggedIn', false);
+  //   prefs.clear();
+  // }
+  //
+  // static Future<bool> isLoggedIn() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   bool state = prefs.getBool('loggedIn') ?? false;
+  //
+  //   return state;
+  // }
+  //
+  // static saveApiKey(String apiKey) async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   prefs.setString('api_key', apiKey);
+  // }
+  //
+  // static getApiKey() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   return prefs.getString('api_key');
+  // }
 }
