@@ -1,68 +1,46 @@
-import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class User {
-  // late String apiKey;
+class MyUser {
+  final String username, bio, email, profileImgUrl;
+  final String uid;
+  final List posts, followers, followed;
 
-  late String username, bio, email, profileImgUrl;
-  late int id, nPosts, nFollowers, nSeguiti;
+  const MyUser({
+    required this.username,
+    required this.uid,
+    required this.profileImgUrl,
+    required this.email,
+    required this.bio,
+    required this.followers,
+    required this.followed,
+    required this.posts,
+  });
 
-  late var followers;
-  late var posts;
-
-  late Map<String, dynamic> jsonMap;
-
-  User(Map<String, dynamic> json) {
-    id = json['id'];
-    username = json['username'];
-    bio = json['bio'];
-    email = json['email'];
-    nPosts = json['n_posts'];
-    nFollowers = json['n_followers'];
-    nSeguiti = json['n_seguiti'];
-    profileImgUrl = json['profile_img_url'];
-
-    jsonMap = {
-      'id': id,
+  Map<String, dynamic> toJson() {
+    return {
+      'uid': uid,
       'username': username,
       'bio': bio,
       'email': email,
-      'n_posts': nPosts,
-      'n_followers': nFollowers,
-      'n_seguiti': nSeguiti,
+      'posts': posts,
+      'followers': followers,
+      'followed': followed,
       'profile_img_url': profileImgUrl,
     };
   }
 
-  // per inizializzare l'app
-  User.vacand();
+  static MyUser fromSnap(DocumentSnapshot snap) {
+    var snapshot = snap.data() as Map<String, dynamic>;
 
-  String toJsonString() {
-    return jsonEncode(jsonMap);
-  }
-
-  Map<String, dynamic> getJsonMap() {
-    return jsonMap;
-  }
-
-  void setPosts(posts) {
-    this.posts = posts;
-  }
-}
-
-class AuthUser extends User {
-  late String apiKey;
-  late Map<String, dynamic> json;
-
-  AuthUser(this.json) : super(json);
-
-  AuthUser.vacand() : super.vacand();
-
-  void setApiKey(apiKey) {
-    this.apiKey = apiKey;
-    super.jsonMap['api_key'] = apiKey;
-  }
-
-  void setPosts(posts) {
-    super.posts = posts;
+    return MyUser(
+      username: snapshot["username"],
+      uid: snapshot["uid"],
+      email: snapshot["email"],
+      profileImgUrl: snapshot["profileImgUrl"],
+      bio: snapshot["bio"],
+      followers: snapshot["followers"],
+      followed: snapshot["followed"],
+      posts: snapshot["posts"],
+    );
   }
 }

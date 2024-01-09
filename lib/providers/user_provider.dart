@@ -1,15 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:instagram_app/models/user.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:instagram_app_cool/models/user.dart';
+import 'package:instagram_app_cool/resources/auth_methods.dart';
 
-class UserProvider with ChangeNotifier {
+class UserProvider extends ChangeNotifier {
+  MyUser? _myUser;
+  MyUser? get myUser => _myUser;
 
-  late AuthUser _userProfile;
+  init() {
+    AuthMethods().getUserData().then((value) {
+      _myUser = value;
+      print(_myUser!.email);
 
-  AuthUser get userProfile => _userProfile;
-
-  void updateUser(AuthUser newUser) {
-    _userProfile = newUser;
-    notifyListeners();
+      notifyListeners();
+    });
   }
-
 }
