@@ -2,11 +2,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:instagram_app_cool/app_layout.dart';
+import 'package:instagram_app_cool/providers/theme_provider.dart';
 import 'package:instagram_app_cool/providers/user_provider.dart';
 import 'package:instagram_app_cool/screens/edit_profile_screen.dart';
 import 'package:instagram_app_cool/screens/home_screen.dart';
 import 'package:instagram_app_cool/screens/login_screen.dart';
 import 'package:instagram_app_cool/screens/profile_screen.dart';
+import 'package:instagram_app_cool/screens/register_screen.dart';
+import 'package:instagram_app_cool/screens/search_screen.dart';
+import 'package:instagram_app_cool/screens/upload_post_screen.dart';
+import 'package:instagram_app_cool/utils/styles.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
@@ -17,12 +23,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  
-
-  runApp(ChangeNotifierProvider.value(
-    value: UserProvider(),
-    child: const MyApp(),
-  ));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -31,36 +32,54 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
-      // theme: ThemeData(
-      //   colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      //   // useMaterial3: true,
-      // ),
-      home: StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          } else if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.hasData) {
-              // UserProvider().init();
+    // Map<String, dynamic>? args =
+    //     ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
-              return HomeScreen();
-            }
-          }
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+        )
+      ],
+      child: Builder(
+        builder: (context) {
+          return MaterialApp(
+            title: 'Instagram App',
+            debugShowCheckedModeBanner: false,
+            theme: Provider.of<ThemeProvider>(context).isDarkTheme ? darkTheme : lightTheme,
 
-          return const LoginScreen();
-        },
+            home: StreamBuilder(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.connectionState == ConnectionState.active) {
+                  if (snapshot.hasData) {
+                    return const AppLayout();
+                  }
+                }
+
+                return LoginScreen();
+              },
+            ),
+            routes: {
+              '/main': (context) => const MyApp(),
+              HomeScreen.pageRouteName: (context) => HomeScreen(),
+              LoginScreen.pageRouteName: (context) => LoginScreen(),
+              RegisterScreen.pageRouteName: (context) => const RegisterScreen(),
+              SearchScreen.pageRouteName: (context) => SearchScreen(
+                    uid: FirebaseAuth.instance.currentUser!.uid,
+                  ),
+              // UploadPostScreen.pageRouteName: (context) => UploadPostScreen(),
+              // ProfileScreen.pageRouteName: (context) => ProfileScreen(
+              //     // uid: FirebaseAuth.instance.currentUser!.uid,
+              //     ),
+              // EditProfileScreen.pageRoute:(context) => EditProfileScreen(myUser: myUser)
+            },
+          );
+        }
       ),
-      routes: {
-        '/main': (context) => const MyApp(),
-        HomeScreen.pageRouteName: (context) => HomeScreen(),
-        LoginScreen.pageRouteName: (context) => const LoginScreen(),
-        ProfileScreen.pageRouteName: (context) => ProfileScreen(),
-        // EditProfileScreen.pageRoute:(context) => EditProfileScreen(myUser: myUser)
-      },
     );
   }
 }

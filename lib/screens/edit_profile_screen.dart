@@ -8,6 +8,11 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:instagram_app_cool/models/user.dart';
+import 'package:instagram_app_cool/resources/auth_methods.dart';
+import 'package:instagram_app_cool/resources/firestore_methods.dart';
+import 'package:instagram_app_cool/resources/storage_methods.dart';
+import 'package:instagram_app_cool/utils/styles.dart';
+import 'package:instagram_app_cool/utils/utils.dart';
 
 class EditProfileScreen extends StatefulWidget {
   EditProfileScreen({super.key, required this.myUser});
@@ -23,40 +28,25 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
 
-  Future saveData() async {
-    String newName = _nameController.text;
-    String newBio = _bioController.text;
-
-    if (changedProfilePic) {
-      // TODO change user profile pic
-      // await api.UserApi.setProfilePic(
-      //     currentUser: currentUser, profilePic: newProfilePicFile);
-    }
-
-    // TODO aggiornare profilo utente in generale
-
-    // return await api.UserApi.modifyUserProfile(
-    //     currentUser: currentUser, newUsername: newName, newBio: newBio);
-
-    //return to profile page
-  }
-
-  // late ImageProvider finalImg;
-  // late XFile newProfilePicFile;
-
   Uint8List? file;
 
   bool changedProfilePic = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey();
 
-  Future<Uint8List?> _getImageFromGallery() async {
-    XFile? pickedFile =
-        (await ImagePicker().pickImage(source: ImageSource.gallery));
+  Future saveData() async {
+    String newName = _nameController.text.trim();
+    String newBio = _bioController.text.trim();
+    String? profileImgUrl;
 
-    if (pickedFile != null) {
-      return pickedFile.readAsBytes();
+    if (changedProfilePic) {
+      profileImgUrl = await StorageMethods().uploadProfilePic(file!);
     }
+
+    String err = await FirestoreMethods().editProfile(
+        username: newName, bio: newBio, profileImgUrl: profileImgUrl);
+
+    return err;
   }
 
   @override
@@ -65,16 +55,12 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
     _nameController.text = widget.myUser.username;
     _bioController.text = widget.myUser.bio;
 
-    // if (!changedProfilePic) {
-    //   finalImg = NetworkImage(currentUser.profileImgUrl);
-    // }
-
     return Scaffold(
       appBar: AppBar(
         //remove arrow back
         // automaticallyImplyLeading: false,
         elevation: 1,
-        backgroundColor: Theme.of(context).primaryColor,
+        // backgroundColor: Theme.of(context).primaryColor,
         title: Text('Modifica profilo'),
       ),
       body: SingleChildScrollView(
@@ -84,54 +70,48 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
             color: Theme.of(context).cardColor,
             child: Padding(
               padding: const EdgeInsets.all(36.0),
-              child: Center(
+              child: Form(
+                key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Form(
-                      key: _formKey,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          changedProfilePic
-                              ? CircleAvatar(
-                                  radius: 40,
-                                  backgroundImage: MemoryImage(file!),
-                                )
-                              : CircleAvatar(
-                                  radius: 40,
-                                  backgroundImage:
-                                      NetworkImage(widget.myUser.profileImgUrl),
-                                ),
-                          ElevatedButton(
-                              onPressed: () async {
-                                file = await _getImageFromGallery();
-                                if (file != null) {
-                                  setState(() {
-                                    changedProfilePic = true;
-                                    // print('ktm');
-                                  });
-                                }
-                              },
-                              child: Text('Modifica'))
-                        ],
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        changedProfilePic
+                            ? CircleAvatar(
+                                radius: 40,
+                                backgroundImage: MemoryImage(file!),
+                              )
+                            : CircleAvatar(
+                                radius: 40,
+                                backgroundImage:
+                                    NetworkImage(widget.myUser.profileImgUrl),
+                              ),
+                        ElevatedButton(
+                            onPressed: () async {
+                              file = await getImageFromGallery();
+                              if (file != null) {
+                                setState(() {
+                                  changedProfilePic = true;
+                                });
+                              }
+                            },
+                            child: Text('Modifica'))
+                      ],
                     ),
                     SizedBox(
                       height: 30,
                     ),
                     TextFormField(
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Inserire username';
                         }
                         return null;
                       },
                       controller: _nameController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Username',
-                      ),
+                      decoration: textFieldDecoration(label: 'Username'),
                     ),
                     SizedBox(
                       height: 30,
@@ -139,41 +119,32 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
                     TextFormField(
                       // maxLines: 4,
                       controller: _bioController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Bio',
-                      ),
+                      decoration: textFieldDecoration(label: 'Bio'),
                     ),
                     SizedBox(
                       height: 30,
                     ),
                     ElevatedButton.icon(
                         onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            saveData().then((err) {
+                              if (err != "") {
+                                showSnackBar(context, err);
+                              } else {
+                                showSnackBar(context, 'modifica effettuata');
 
-                          if(_formKey.currentState!.validate()){
-
+                                // torno alla pagina del profilo dopo aver caricato il post
+                                Navigator.of(context).pop();
+                              }
+                            });
                           }
-
-                          // mostrare il dialog
-
-                          // var confirm = await twoButtonDialog(
-                          //     context, 'La modifica comporterà il logout');
-
-                          // if (confirm) {
-                          //   // logout
-                          //   if (await saveData() == 200) {
-                          //     await logout(context);
-                          //   }
-                          // } else {
-                          //   Navigator.pushReplacementNamed(context, '/profile');
-                          // }
                         },
                         icon: Icon(Icons.check),
                         label: Text('Salva')),
                     SizedBox(
                       height: 60,
                     ),
-                    Text('La modifica dei dati richiederà il logout*')
+                    // Text('La modifica dei dati richiederà il logout*')
                   ],
                 ),
               ),
