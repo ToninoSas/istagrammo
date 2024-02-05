@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
+String defaultProfileImg =
+    "https://static.vecteezy.com/system/resources/previews/020/911/740/original/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png";
 
 showSnackBar(BuildContext context, String msg) {
   FocusScope.of(context).unfocus();
@@ -16,6 +18,17 @@ showSnackBar(BuildContext context, String msg) {
 Future<Uint8List?> getImageFromGallery() async {
   XFile? pickedFile =
       (await ImagePicker().pickImage(source: ImageSource.gallery));
+
+  if (pickedFile != null) {
+    return _cropImage(pickedFile);
+  }
+
+  return null;
+}
+
+Future<Uint8List?> getImageFromCamera() async {
+  XFile? pickedFile =
+      (await ImagePicker().pickImage(source: ImageSource.camera));
 
   if (pickedFile != null) {
     return _cropImage(pickedFile);

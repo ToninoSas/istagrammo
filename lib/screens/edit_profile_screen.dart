@@ -1,18 +1,14 @@
 // ignore_for_file: file_names, prefer_const_constructors, camel_case_types
 
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:instagram_app_cool/models/user.dart';
-import 'package:instagram_app_cool/resources/auth_methods.dart';
-import 'package:instagram_app_cool/resources/firestore_methods.dart';
-import 'package:instagram_app_cool/resources/storage_methods.dart';
-import 'package:instagram_app_cool/utils/styles.dart';
-import 'package:instagram_app_cool/utils/utils.dart';
+import 'package:istagrammo/models/user.dart';
+import 'package:istagrammo/resources/firestore_methods.dart';
+import 'package:istagrammo/resources/storage_methods.dart';
+import 'package:istagrammo/utils/styles.dart';
+import 'package:istagrammo/utils/utils.dart';
 
 class EditProfileScreen extends StatefulWidget {
   EditProfileScreen({super.key, required this.myUser});
@@ -30,7 +26,7 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
 
   Uint8List? file;
 
-  bool changedProfilePic = false;
+  bool changedProfilePic = false, resettedProfilePic = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey();
 
@@ -43,10 +39,23 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
       profileImgUrl = await StorageMethods().uploadProfilePic(file!);
     }
 
+    if (resettedProfilePic) {
+      profileImgUrl = defaultProfileImg;
+    }
+
     String err = await FirestoreMethods().editProfile(
         username: newName, bio: newBio, profileImgUrl: profileImgUrl);
 
     return err;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    widget.myUser.profileImgUrl == defaultProfileImg
+        ? resettedProfilePic = true
+        : resettedProfilePic = false;
   }
 
   @override
@@ -78,22 +87,50 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        changedProfilePic
-                            ? CircleAvatar(
-                                radius: 40,
-                                backgroundImage: MemoryImage(file!),
-                              )
-                            : CircleAvatar(
+                        Stack(
+                          children: [
+                            if (resettedProfilePic)
+                              CircleAvatar(
                                 radius: 40,
                                 backgroundImage:
-                                    NetworkImage(widget.myUser.profileImgUrl),
-                              ),
+                                    NetworkImage(defaultProfileImg),
+                              )
+                            else
+                              changedProfilePic
+                                  ? CircleAvatar(
+                                      radius: 40,
+                                      backgroundImage: MemoryImage(file!),
+                                    )
+                                  : CircleAvatar(
+                                      radius: 40,
+                                      backgroundImage: NetworkImage(
+                                          widget.myUser.profileImgUrl),
+                                    ),
+                            if (resettedProfilePic == false)
+                              Positioned(
+                                bottom: -10,
+                                left: -10,
+                                child: IconButton(
+                                  tooltip: 'Rimuovi immagine',
+                                  onPressed: () {
+                                    setState(() {
+                                      resettedProfilePic = true;
+                                      changedProfilePic = false;
+                                      file = null;
+                                    });
+                                  },
+                                  icon: const Icon(Icons.cancel),
+                                ),
+                              )
+                          ],
+                        ),
                         ElevatedButton(
                             onPressed: () async {
                               file = await getImageFromGallery();
                               if (file != null) {
                                 setState(() {
                                   changedProfilePic = true;
+                                  resettedProfilePic = false;
                                 });
                               }
                             },
@@ -104,6 +141,7 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
                       height: 30,
                     ),
                     TextFormField(
+                      enabled: false,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Inserire username';

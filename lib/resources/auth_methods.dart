@@ -4,9 +4,10 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:instagram_app_cool/models/user.dart';
-import 'package:instagram_app_cool/resources/firestore_methods.dart';
-import 'package:instagram_app_cool/resources/storage_methods.dart';
+import 'package:istagrammo/models/user.dart';
+import 'package:istagrammo/resources/firestore_methods.dart';
+import 'package:istagrammo/resources/storage_methods.dart';
+import 'package:istagrammo/utils/utils.dart';
 
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -15,6 +16,9 @@ class AuthMethods {
   Future<String> login(
       {required String email, required String password}) async {
     String msg = "";
+
+    email = email.trim();
+    password = password.trim();
 
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
@@ -33,6 +37,10 @@ class AuthMethods {
       Uint8List? profileImg}) async {
     String msg = "";
 
+    email = email.trim();
+    password = password.trim();
+    username = username.trim();
+
     try {
       UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
@@ -50,10 +58,12 @@ class AuthMethods {
           bio: bio ?? "",
           followers: [],
           followed: [],
-          profileImgUrl: profileImgUrl ??
-              "https://static.vecteezy.com/system/resources/previews/020/911/740/original/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png");
+          profileImgUrl: profileImgUrl ?? defaultProfileImg);
 
-      await _db.collection('utenti').doc(cred.user!.uid).set(user.toJson());
+      await _db
+          .collection(FirestoreMethods.utentiCollection)
+          .doc(cred.user!.uid)
+          .set(user.toJson());
     } catch (err) {
       msg = err.toString();
     }
@@ -74,9 +84,12 @@ class AuthMethods {
   Future<MyUser?> getUserData({required String uid}) async {
     if (_auth.currentUser != null) {
       DocumentSnapshot snap;
-      
-      snap = await _db.collection('utenti').doc(uid).get();
-      
+
+      snap = await _db
+          .collection(FirestoreMethods.utentiCollection)
+          .doc(uid)
+          .get();
+
       return MyUser.fromSnap(snap);
     } else {
       return null;

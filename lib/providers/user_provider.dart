@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:instagram_app_cool/models/post.dart';
-import 'package:instagram_app_cool/models/user.dart';
-import 'package:instagram_app_cool/resources/auth_methods.dart';
+import 'package:istagrammo/models/post.dart';
+import 'package:istagrammo/models/user.dart';
+import 'package:istagrammo/resources/firestore_methods.dart';
 
 class UserProvider extends ChangeNotifier {
   MyUser? _myUser;
@@ -19,7 +19,7 @@ class UserProvider extends ChangeNotifier {
 
   init() {
     FirebaseFirestore.instance
-        .collection('utenti')
+        .collection(FirestoreMethods.utentiCollection)
         .where('uid', isEqualTo: currentUser!.uid)
         .snapshots()
         .listen(
@@ -28,14 +28,21 @@ class UserProvider extends ChangeNotifier {
 
         _myUser = MyUser.fromSnap(event.docs[0]);
         final snap = await FirebaseFirestore.instance
-            .collection('posts')
+            .collection(FirestoreMethods.postsCollection)
             .where('uid', isEqualTo: currentUser!.uid)
+            .orderBy('datePublished', descending: true)
             .get();
 
         _myUser!.posts = [];
+        _myUser!.twitts = [];
 
         for (var doc in snap.docs) {
-          _myUser!.posts.add(Post.fromSnap(doc));
+          if (doc.data()['isTwitt']) {
+            _myUser!.twitts.add(doc);
+          } else {
+            Post post = Post.fromSnap(doc);
+            _myUser!.posts.add(post);
+          }
         }
 
         hasLoaded = true;
@@ -45,19 +52,29 @@ class UserProvider extends ChangeNotifier {
     );
 
     FirebaseFirestore.instance
-        .collection('posts')
+        .collection(FirestoreMethods.postsCollection)
         .where('uid', isEqualTo: currentUser!.uid)
+        .orderBy('datePublished', descending: true)
         .snapshots()
         .listen(
       (snap) {
         if (_myUser == null) return;
 
         hasLoaded = false;
+
         _myUser!.posts = [];
+        _myUser!.twitts = [];
 
         for (var doc in snap.docs) {
-          _myUser!.posts.add(Post.fromSnap(doc));
+          // Post post = Post.fromSnap(doc);
+          if (doc.data()['isTwitt']) {
+            _myUser!.twitts.add(doc);
+          } else {
+            Post post = Post.fromSnap(doc);
+            _myUser!.posts.add(post);
+          }
         }
+
         hasLoaded = true;
 
         notifyListeners();
@@ -65,18 +82,5 @@ class UserProvider extends ChangeNotifier {
         print('Aggiorno i dati dei posts');
       },
     );
-  }
-
-  Future loadUserData() async {
-    String msg = "";
-    try {
-      _myUser = await AuthMethods().getUserData(uid: currentUser!.uid);
-      notifyListeners();
-    } catch (err) {
-      msg = err.toString();
-      print(msg);
-    }
-
-    return msg;
   }
 }

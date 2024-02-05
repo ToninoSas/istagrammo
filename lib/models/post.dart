@@ -9,31 +9,41 @@ class Post {
   final DateTime datePublished;
   final String postUrl;
   final String profileImgUrl;
+  bool isTwitt = false;
 
-  const Post({
-    required this.description,
-    required this.uid,
-    required this.username,
-    required this.likes,
-    required this.postId,
-    required this.datePublished,
-    required this.postUrl,
-    required this.profileImgUrl
-  });
+  final comments;
+  // late int nLikes;
+
+  Post(
+      {required this.description,
+      required this.uid,
+      required this.username,
+      required this.likes,
+      required this.postId,
+      required this.datePublished,
+      required this.postUrl,
+      required this.profileImgUrl,
+      required this.isTwitt,
+      // required this.twittTitle, 
+      required this.comments}) {
+    // nLikes = likes.length;
+  }
 
   static Post fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
 
     return Post(
-      description: snapshot["description"],
-      uid: snapshot["uid"],
-      likes: snapshot["likes"],
-      postId: snapshot["postId"],
-      datePublished: snapshot["datePublished"].toDate(),
-      username: snapshot["username"],
-      postUrl: snapshot['postUrl'],
-      profileImgUrl: snapshot['profileImgUrl']
-    );
+        isTwitt: snapshot["isTwitt"],
+        // twittTitle: snapshot["twittTitle"],
+        description: snapshot["description"],
+        uid: snapshot["uid"],
+        likes: snapshot["likes"],
+        postId: snapshot["postId"],
+        datePublished: snapshot["datePublished"].toDate(),
+        username: snapshot["username"],
+        postUrl: snapshot['postUrl'],
+        profileImgUrl: snapshot['profileImgUrl'],
+        comments: snapshot['comments']);
   }
 
   Map<String, dynamic> toJson() => {
@@ -44,6 +54,9 @@ class Post {
         "postId": postId,
         "datePublished": datePublished,
         'postUrl': postUrl,
-        "profileImgUrl":profileImgUrl
+        "profileImgUrl": profileImgUrl,
+        "nLikes": likes.length,
+        "isTwitt": isTwitt,
+        "comments":comments
       };
 }

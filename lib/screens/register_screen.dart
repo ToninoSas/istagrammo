@@ -3,9 +3,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:instagram_app_cool/resources/auth_methods.dart';
-import 'package:instagram_app_cool/utils/styles.dart';
-import 'package:instagram_app_cool/utils/utils.dart';
+import 'package:istagrammo/resources/auth_methods.dart';
+import 'package:istagrammo/utils/styles.dart';
+import 'package:istagrammo/utils/utils.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -87,11 +87,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? CircleAvatar(
                             radius: 55,
                             backgroundImage: MemoryImage(img!),
-                            backgroundColor: Colors.white,
                           )
                         : const CircleAvatar(
                             radius: 55,
-                            backgroundColor: Colors.white,
                             backgroundImage: NetworkImage(
                                 "https://static.vecteezy.com/system/resources/previews/020/911/740/original/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png"),
                           ),

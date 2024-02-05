@@ -1,8 +1,15 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
-import 'package:instagram_app_cool/models/user.dart';
-import 'package:instagram_app_cool/providers/user_provider.dart';
-import 'package:instagram_app_cool/resources/firestore_methods.dart';
-import 'package:instagram_app_cool/utils/utils.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:istagrammo/models/user.dart';
+import 'package:istagrammo/providers/user_provider.dart';
+import 'package:istagrammo/resources/firestore_methods.dart';
+import 'package:istagrammo/screens/comments_screen.dart';
+import 'package:istagrammo/screens/edit_post_screen.dart';
+import 'package:istagrammo/screens/profile_screen.dart';
+import 'package:istagrammo/utils/utils.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class PostCard extends StatefulWidget {
@@ -20,62 +27,101 @@ class _PostCardState extends State<PostCard> {
     final MyUser user = Provider.of<UserProvider>(context).myUser;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.transparent,
-                    backgroundImage: NetworkImage(widget.snap['profileImgUrl']),
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Text(
-                    widget.snap['username'],
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                ],
-              ),
-              if (user.uid == widget.snap['uid'].toString())
-                IconButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return Dialog(
-                              child: InkWell(
-                            onTap: () async {
-                              String msg = await FirestoreMethods()
-                                  .deletePost(widget.snap['postId']);
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
+        InkWell(
+          onTap: () {
+            if (user.uid != widget.snap['uid'].toString()) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ProfileScreen(
+                            uid: widget.snap['uid'].toString(),
+                          )));
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage:
+                          NetworkImage(widget.snap['profileImgUrl']),
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Text(
+                      widget.snap['username'],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+                if (user.uid == widget.snap['uid'].toString())
+                  IconButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return SimpleDialog(
+                              contentPadding: EdgeInsets.zero,
+                              children: [
+                                SimpleDialogOption(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
 
-                                if (msg != "") {
-                                  showSnackBar(context, msg);
-                                } else {
-                                  showSnackBar(context, 'Post eliminato');
-                                }
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              child: const Text(
-                                'Elimina post',
-                                style: TextStyle(fontSize: 18),
-                              ),
-                            ),
-                          ));
-                        },
-                      );
-                    },
-                    icon: const Icon(Icons.more_vert_outlined))
-            ],
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                      builder: (context) => EditPostScreen(
+                                        snap: widget.snap,
+                                      ),
+                                    ));
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    child: const Text(
+                                      'Modifica post',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                ),
+                                SimpleDialogOption(
+                                  onPressed: () async {
+                                    String msg = await FirestoreMethods()
+                                        .deletePost(widget.snap['postId']);
+
+                                    Navigator.of(context).pop();
+
+                                    if (msg != "") {
+                                      showSnackBar(context, msg);
+                                    } else {
+                                      showSnackBar(context, 'Post eliminato');
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    child: const Text(
+                                      'Elimina post',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      icon: const Icon(Icons.more_vert_outlined))
+                else
+                  IconButton(onPressed: null, icon: Icon(null))
+              ],
+            ),
           ),
         ),
         SizedBox(
@@ -89,11 +135,22 @@ class _PostCardState extends State<PostCard> {
                   postId: widget.snap['postId'],
                   likes: widget.snap['likes']);
             },
+            // child: PhotoView(
+            //   imageProvider: NetworkImage(widget.snap['postUrl']),
+            //   minScale: PhotoViewComputedScale.contained,
+            
+            //   errorBuilder: (context, error, stackTrace) {
+            //     return const Center(
+            //         child: Text('Impossibile caricare l\'immagine'));
+            //   },
+              
+            // ),
             child: Image.network(
               widget.snap['postUrl'],
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return const Center(child: Text('Impossibile caricare l\'immagine'));
+                return const Center(
+                    child: Text('Impossibile caricare l\'immagine'));
               },
             ),
           ),
@@ -101,72 +158,105 @@ class _PostCardState extends State<PostCard> {
         const SizedBox(
           height: 5,
         ),
-        Column(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Stack(
                   children: [
-                    Column(
-                      children: [
-                        IconButton(
-                          onPressed: () async {
-                            await FirestoreMethods().likePost(
-                                uid: user.uid,
-                                postId: widget.snap['postId'],
-                                likes: widget.snap['likes']);
-                          },
-                          icon: widget.snap['likes'].contains(user.uid)
-                              ? const Icon(
-                                  Icons.favorite,
-                                  color: Colors.red,
-                                )
-                              : const Icon(
-                                  Icons.favorite_border,
-                                ),
-                        ),
-                        Text('${widget.snap['likes'].length}')
-                      ],
+                    IconButton(
+                      onPressed: () async {
+                        await FirestoreMethods().likePost(
+                            uid: user.uid,
+                            postId: widget.snap['postId'],
+                            likes: widget.snap['likes']);
+                      },
+                      icon: widget.snap['likes'].contains(user.uid)
+                          ? const Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                            )
+                          : const Icon(
+                              Icons.favorite_border,
+                            ),
                     ),
-                    const IconButton(
-                        onPressed: null, icon: Icon(Icons.comment)),
-                    const IconButton(onPressed: null, icon: Icon(Icons.share)),
+                    Positioned(
+                      bottom: 15,
+                      left: 40,
+                      child: Text('${widget.snap['likes'].length}'),
+                    )
                   ],
                 ),
-                const IconButton(onPressed: null, icon: Icon(Icons.save_alt)),
+                Stack(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) =>
+                              CommentsScreen(snap: widget.snap),
+                        ));
+                      },
+                      icon: const FaIcon(
+                        size: 22,
+                        FontAwesomeIcons.commentDots,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 15,
+                      left: 40,
+                      child: Text('${widget.snap['comments'].length}'),
+                    )
+                  ],
+                ),
+                const IconButton(onPressed: null, icon: Icon(Icons.share)),
               ],
             ),
+            const IconButton(onPressed: null, icon: Icon(Icons.save_alt)),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: widget.snap['description'] != ""
-                ? [
-                    const Text(
-                      'Descrizione: ',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                    ),
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    Flexible(
-                      child: Text(
-                        '${widget.snap['description']}',
-                        // 'sono sono sono sono sono sono osno sono ksk ks jsjsoso jsjsj sono sono sono sono sono sono osno sono ksk ks jsjsoso jsjsjsono sono sono sono sono sono osno sono ksk ks jsjsoso jsjsj',
-                        textAlign: TextAlign.left,
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    )
-                  ]
-                : [Container()],
+        const SizedBox(
+          height: 5,
+        ),
+        widget.snap['description'] != ""
+            ? Column(
+                children: [
+                  Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: RichText(
+                        text: TextSpan(
+                            style: TextStyle(
+                                color:
+                                    DefaultTextStyle.of(context).style.color),
+                            children: [
+                              TextSpan(
+                                  text: widget.snap['username'],
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              TextSpan(text: '  ${widget.snap['description']}')
+                            ]),
+                      )),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                ],
+              )
+            : Container(),
+        Container(
+          padding: const EdgeInsets.only(left: 16, bottom: 12),
+          child: Text(
+            DateFormat.yMMMd()
+                .add_Hms()
+                .format(widget.snap['datePublished'].toDate()),
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
-        )
+        ),
+        // const Divider(
+        //   thickness: 1,
+        //   height: 0,
+        // )
       ],
     );
   }

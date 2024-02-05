@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_app_cool/models/user.dart';
-import 'package:instagram_app_cool/resources/auth_methods.dart';
-import 'package:instagram_app_cool/screens/profile_screen.dart';
-import 'package:instagram_app_cool/utils/styles.dart';
+import 'package:istagrammo/models/user.dart';
+import 'package:istagrammo/resources/auth_methods.dart';
+import 'package:istagrammo/resources/firestore_methods.dart';
+import 'package:istagrammo/screens/profile_screen.dart';
+import 'package:istagrammo/utils/styles.dart';
 
 class SearchScreen extends StatefulWidget {
   SearchScreen(
@@ -37,19 +38,19 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (widget.isFollowersPage!) {
       return FirebaseFirestore.instance
-          .collection('utenti')
+          .collection(FirestoreMethods.utentiCollection)
           .where('followed', arrayContains: widget.uid)
           .where('username', isGreaterThanOrEqualTo: usernameToSearch)
           .get();
     } else if (widget.isFollowedPage!) {
       return FirebaseFirestore.instance
-          .collection('utenti')
+          .collection(FirestoreMethods.utentiCollection)
           .where('followers', arrayContains: widget.uid)
           .where('username', isGreaterThanOrEqualTo: usernameToSearch)
           .get();
     } else {
       return FirebaseFirestore.instance
-          .collection('utenti')
+          .collection(FirestoreMethods.utentiCollection)
           .where('username', isGreaterThanOrEqualTo: usernameToSearch)
           .get();
     }
@@ -171,7 +172,6 @@ class _SearchScreenState extends State<SearchScreen> {
                                   : Text(myUser.bio),
                               leading: CircleAvatar(
                                 radius: 30,
-                                backgroundColor: Colors.white,
                                 backgroundImage:
                                     NetworkImage(myUser.profileImgUrl),
                               ),

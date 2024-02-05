@@ -1,15 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_app_cool/models/post.dart';
-import 'package:instagram_app_cool/resources/firestore_methods.dart';
-import 'package:instagram_app_cool/utils/utils.dart';
-import 'package:instagram_app_cool/widgets/post_card.dart';
+import 'package:istagrammo/models/post.dart';
+import 'package:istagrammo/resources/firestore_methods.dart';
+import 'package:istagrammo/widgets/post_card.dart';
 
 class PostThumb extends StatelessWidget {
-  PostThumb({super.key, required this.snap, required this.isCurrentUser});
+  PostThumb(
+      {super.key,
+      required this.snap,
+      required this.isCurrentUser,
+      required this.index});
 
   Post snap;
   bool isCurrentUser;
+  int index;
+
+  int stimatedPostCardSize = 495;
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +29,22 @@ class PostThumb extends StatelessWidget {
         ),
         body: StreamBuilder(
             stream: FirebaseFirestore.instance
-                .collection('posts')
+                .collection(FirestoreMethods.postsCollection)
                 // .doc(snap.postId.toString())
                 .where('uid', isEqualTo: snap.uid)
+                .orderBy('datePublished', descending: true)
+                .where('isTwitt', isEqualTo: false)
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
+                // dopo che carica tutto lo stream builder fa lo scroll
+                WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                  _scrollController
+                      .jumpTo((index * stimatedPostCardSize).toDouble());
+                });
+
                 return ListView.builder(
+                  controller: _scrollController,
                   itemCount: snapshot.data!.docs.length,
                   itemBuilder: (context, index) {
                     return PostCard(snap: snapshot.data!.docs[index].data());
@@ -37,10 +54,10 @@ class PostThumb extends StatelessWidget {
 
               return const CircularProgressIndicator();
             }));
-            
+
     return InkWell(
-      onTap: () {
-        Navigator.of(context)
+      onTap: () async {
+        await Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) => postPage));
       },
       child: Image.network(

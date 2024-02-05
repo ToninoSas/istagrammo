@@ -1,9 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:istagrammo/models/post.dart';
 
 class MyUser {
   final String username, bio, email, profileImgUrl;
   final String uid;
-  List posts=[], followers, followed;
+  List<Post> posts = [];
+  List followers, followed;
+  List twitts = [];
 
   MyUser({
     required this.username,

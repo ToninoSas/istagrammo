@@ -25,6 +25,8 @@ ThemeData darkTheme = ThemeData.dark().copyWith(
   drawerTheme: const DrawerThemeData(
     backgroundColor: backgroundColorDark,
   ),
+  // per il background dei circular avatar
+  primaryColorDark: Colors.grey,
   elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
           backgroundColor: const MaterialStatePropertyAll(primaryColorDark),
@@ -41,6 +43,10 @@ ThemeData lightTheme = ThemeData.light().copyWith(
       // titleTextStyle: TextStyle(color: Colors.black, fontSize: 20)
       ),
   primaryColor: primaryColorLight,
+  
+  // per il background dei circular avatar
+
+  primaryColorDark: Colors.grey,
   secondaryHeaderColor: Colors.grey,
   cardColor: backgroundColorLight,
   drawerTheme: const DrawerThemeData(

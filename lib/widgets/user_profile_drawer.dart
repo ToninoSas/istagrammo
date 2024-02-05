@@ -1,12 +1,12 @@
 // ignore_for_file: must_be_immutable, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:instagram_app_cool/models/user.dart';
-import 'package:instagram_app_cool/providers/theme_provider.dart';
-import 'package:instagram_app_cool/providers/user_provider.dart';
-import 'package:instagram_app_cool/resources/auth_methods.dart';
-import 'package:instagram_app_cool/utils/styles.dart';
-import 'package:instagram_app_cool/utils/utils.dart';
+import 'package:istagrammo/models/user.dart';
+import 'package:istagrammo/providers/theme_provider.dart';
+import 'package:istagrammo/providers/user_provider.dart';
+import 'package:istagrammo/resources/auth_methods.dart';
+import 'package:istagrammo/utils/styles.dart';
+import 'package:istagrammo/utils/utils.dart';
 import 'package:provider/provider.dart';
 
 class UserProfileDrower extends StatefulWidget {
@@ -40,7 +40,7 @@ class _UserProfileDrowerState extends State<UserProfileDrower> {
       showSnackBar(context,
           'E\' necessario l\'riautenticarsi. Effettui il logout e successivamente il login e riprovi l\'operazione');
     }
-
+    // TODO RIMUOVERE L'UTENTE DAI FOLLOWERS E DAI SEGUITI DEGLI ALTRI UTENTI
     // TODO ELIMINA PROFILO UTENTE E LOGOUT
   }
 
@@ -80,9 +80,8 @@ class _UserProfileDrowerState extends State<UserProfileDrower> {
               ],
             ),
 
-            currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white,
-                backgroundImage: NetworkImage(user.profileImgUrl)),
+            currentAccountPicture:
+                CircleAvatar(backgroundImage: NetworkImage(user.profileImgUrl)),
             decoration: BoxDecoration(
                 color: Provider.of<ThemeProvider>(context).isDarkTheme
                     ? primaryColorDark

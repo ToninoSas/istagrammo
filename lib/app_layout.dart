@@ -1,14 +1,12 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_app_cool/models/user.dart';
-import 'package:instagram_app_cool/providers/user_provider.dart';
-import 'package:instagram_app_cool/screens/home_screen.dart';
-import 'package:instagram_app_cool/screens/profile_screen.dart';
-import 'package:instagram_app_cool/screens/search_screen.dart';
-import 'package:instagram_app_cool/utils/utils.dart';
+import 'package:istagrammo/models/user.dart';
+import 'package:istagrammo/providers/user_provider.dart';
+import 'package:istagrammo/screens/home_screen.dart';
+import 'package:istagrammo/screens/profile_screen.dart';
+import 'package:istagrammo/screens/search_screen.dart';
 import 'package:provider/provider.dart';
 
 class AppLayout extends StatefulWidget {
@@ -79,7 +77,6 @@ class _AppLayoutState extends State<AppLayout> {
             ),
             BottomNavigationBarItem(
                 icon: CircleAvatar(
-                  backgroundColor: Colors.white,
                   radius: 15,
                   backgroundImage: NetworkImage(user.profileImgUrl),
                 ),

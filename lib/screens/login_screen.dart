@@ -1,10 +1,9 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_app_cool/resources/auth_methods.dart';
-import 'package:instagram_app_cool/utils/styles.dart';
-import 'package:instagram_app_cool/utils/utils.dart';
+import 'package:istagrammo/resources/auth_methods.dart';
+import 'package:istagrammo/utils/styles.dart';
+import 'package:istagrammo/utils/utils.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({super.key, this.reauthenticate = false});
@@ -42,7 +41,9 @@ class _LoginScreenState extends State<LoginScreen> {
       //   });
       // }
       // navigate to the home screen
-      showSnackBar(context, 'Login effettuato');
+      if (context.mounted) {
+        showSnackBar(context, 'Login effettuato');
+      }
 
       // if (context.mounted) {
       //   Future.delayed(const Duration(seconds: 1), () {
@@ -72,9 +73,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Instagram',
-                    style: TextStyle(fontSize: 20),
+                  CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    radius: 60,
+                    backgroundImage:
+                        AssetImage('assets/logo/istogramma3.png'),
                   ),
                   Container(
                     padding: const EdgeInsets.all(32),
@@ -101,7 +104,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             TextFormField(
                                 controller: _passwordController,
                                 obscureText: true,
-                                decoration: textFieldDecoration(label: 'Password')),
+                                decoration:
+                                    textFieldDecoration(label: 'Password')),
                             const SizedBox(
                               height: 32,
                             ),
