@@ -1,18 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import 'package:firebase_core/firebase_core.dart';
 import 'package:istagrammo/app_layout.dart';
+// import 'package:istagrammo/app_layout.dart';
+
+// import 'package:firebase_core/firebase_core.dart';
 import 'package:istagrammo/providers/theme_provider.dart';
 import 'package:istagrammo/providers/user_provider.dart';
 import 'package:istagrammo/screens/home_screen.dart';
 import 'package:istagrammo/screens/login_screen.dart';
 import 'package:istagrammo/screens/register_screen.dart';
-import 'package:istagrammo/screens/search_screen.dart';
 import 'package:istagrammo/utils/styles.dart';
 import 'package:provider/provider.dart';
-import 'firebase_options.dart';
+// import 'firebase_options.dart';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /* TODO 
 
@@ -27,39 +27,26 @@ notifiche
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
+
+  await Supabase.initialize(
+    url: 'https://kdprfkrjxykofgnuteib.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkcHJma3JqeHlrb2ZnbnV0ZWliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNzI1NDUsImV4cCI6MjA1NDg0ODU0NX0.gHdkU3hKC_E9h8k9DfkmJL9iu7HE3cZYSHSpteOXqjk',
   );
 
-  //  TODO trim a volte sembra non funzionare nei twitt
-  // TODO rimuovere la possibilità di cambiare username
-
-  // final data = await FirebaseFirestore.instance.collection('posts').get();
-  // for (var doc in data.docs) {
-  //   print(doc);
-  //   await FirebaseFirestore.instance
-  //       .collection('posts')
-  //       .doc(doc.id)
-  //       .update({'comments': []});
-
-  //   await FirebaseFirestore.instance
-  //       .collection('posts')
-  //       .doc(doc.id)
-  //       .update({'isTwitt': false});
-  // }
-
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+  final SupabaseClient supabase = Supabase.instance.client;
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    // Map<String, dynamic>? args =
-    //     ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
@@ -69,38 +56,39 @@ class MyApp extends StatelessWidget {
       ],
       child: Builder(builder: (context) {
         return MaterialApp(
-          title: 'Instagram App',
+          title: 'istagrammo',
           debugShowCheckedModeBanner: false,
-          theme: Provider.of<ThemeProvider>(context).isDarkTheme
-              ? darkTheme
-              : lightTheme,
+          // theme: Provider.of<ThemeProvider>(context).isDarkTheme
+          //     ? darkTheme
+          //     : lightTheme,
+          theme: lightTheme,
           home: StreamBuilder(
-            stream: FirebaseAuth.instance.authStateChanges(),
+            stream: supabase.auth.onAuthStateChange,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const CircularProgressIndicator();
-              } else if (snapshot.connectionState == ConnectionState.active) {
-                if (snapshot.hasData) {
-                  return const AppLayout();
+              }
+              if (snapshot.hasData) {
+                // return const AppLayout();
+                final authState = snapshot.data;
+                if (authState == null ||
+                    authState.event == AuthChangeEvent.signedOut) {
+                  return LoginScreen(); // Mostra la schermata di login se l'utente è disconnesso
+                }
+
+                if (authState.event == AuthChangeEvent.signedIn) {
+                  return AppLayout(); // Mostra la schermata principale se l'utente è loggato
                 }
               }
 
-              return LoginScreen();
+              return AppLayout();
             },
           ),
           routes: {
-            '/main': (context) => const MyApp(),
+            '/main': (context) => MyApp(),
             HomeScreen.pageRouteName: (context) => HomeScreen(),
             LoginScreen.pageRouteName: (context) => LoginScreen(),
             RegisterScreen.pageRouteName: (context) => const RegisterScreen(),
-            SearchScreen.pageRouteName: (context) => SearchScreen(
-                  uid: FirebaseAuth.instance.currentUser!.uid,
-                ),
-            // UploadPostScreen.pageRouteName: (context) => UploadPostScreen(),
-            // ProfileScreen.pageRouteName: (context) => ProfileScreen(
-            //     // uid: FirebaseAuth.instance.currentUser!.uid,
-            //     ),
-            // EditProfileScreen.pageRoute:(context) => EditProfileScreen(myUser: myUser)
           },
         );
       }),

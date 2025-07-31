@@ -1,48 +1,31 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Comment {
-  final String username;
-  final String uid;
-  final String postId;
   final String commentId;
-  final String profileImgUrl;
+  final String codUtente;
+  final String codPost;
   final String text;
-  List likes = [];
-  final DateTime datePublished;
+  // final DateTime datePublished;
 
   Comment(
-      {required this.username,
-      required this.profileImgUrl,
-      required this.uid,
-      required this.postId,
-      required this.commentId,
+      {required this.commentId,
       required this.text,
-      required this.likes,
-      required this.datePublished});
+      required this.codPost,
+      required this.codUtente});
 
-  static Comment fromSnap(DocumentSnapshot snap) {
-    var snapshot = snap.data() as Map<String, dynamic>;
+  static Comment fromSnap(Map<String, dynamic> snapshot) {
+    // var snapshot = snap.data() as Map<String, dynamic>;
 
     return Comment(
-        text: snapshot['text'],
-        commentId: snapshot["commentId"],
-        uid: snapshot["uid"],
-        likes: snapshot["likes"],
-        postId: snapshot["postId"],
-        username: snapshot["username"],
-        profileImgUrl: snapshot['profileImgUrl'],
-        datePublished: snapshot['datePublished'].toDate());
+      text: snapshot['text'],
+      commentId: snapshot["id"],
+      codUtente: snapshot["codUtente"],
+      codPost: snapshot["codPost"],
+    );
   }
 
   Map<String, dynamic> toJson() => {
-        "uid": uid,
         "text": text,
-        "commentId": commentId,
-        "likes": likes,
-        "username": username,
-        "postId": postId,
-        "profileImgUrl": profileImgUrl,
-        "nLikes": likes.length,
-        "datePublished": datePublished
+        "id": commentId,
+        "codUtente": codUtente,
+        "codPick": codPost
       };
 }

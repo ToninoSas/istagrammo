@@ -1,13 +1,16 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:istagrammo/models/user.dart';
 import 'package:istagrammo/providers/user_provider.dart';
-import 'package:istagrammo/screens/home_screen.dart';
+// import 'package:istagrammo/screens/home_screen.dart';
 import 'package:istagrammo/screens/profile_screen.dart';
 import 'package:istagrammo/screens/search_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:istagrammo/screens/home_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppLayout extends StatefulWidget {
   const AppLayout({super.key});
@@ -33,8 +36,8 @@ class _AppLayoutState extends State<AppLayout> {
     // le pagine ogni volta che avviene un redirect a /main devono essere ricostruite
     List<Widget> pages = [
       HomeScreen(),
-      SearchScreen(uid: FirebaseAuth.instance.currentUser!.uid),
-      ProfileScreen(uid: FirebaseAuth.instance.currentUser!.uid)
+      SearchScreen(targetId: Supabase.instance.client.auth.currentUser!.id),
+      ProfileScreen(userToShowUid: Supabase.instance.client.auth.currentUser!.id)
     ];
 
     if (Provider.of<UserProvider>(context).hasLoaded) {
@@ -61,6 +64,8 @@ class _AppLayoutState extends State<AppLayout> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           showSelectedLabels: false,
           showUnselectedLabels: false,
+          selectedFontSize: 10,
+          unselectedFontSize: 10,
           currentIndex: _page,
           onTap: (_index) {
             _pageController.jumpToPage(_index);
@@ -72,9 +77,12 @@ class _AppLayoutState extends State<AppLayout> {
             const BottomNavigationBarItem(
                 icon: Icon(Icons.home), label: 'Home'),
             const BottomNavigationBarItem(
+              // icon: FaIcon(FontAwesomeIcons.globe),
               icon: Icon(Icons.search),
               label: 'Search',
             ),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.chat), label: 'Chat'),
             BottomNavigationBarItem(
                 icon: CircleAvatar(
                   radius: 15,

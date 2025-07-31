@@ -21,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _nomeCognomeController = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey();
 
@@ -39,7 +40,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passwordController.text,
         username: _usernameController.text,
         bio: _bioController.text,
-        profileImg: img);
+        profileImg: img,
+        nomeCognome: _nomeCognomeController.text);
     // if string returned is sucess, user has been created
     if (res == "") {
       setState(() {
@@ -98,12 +100,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       left: 70,
                       child: IconButton(
                         onPressed: () async {
-                          img = await getImageFromGallery();
-                          if (img != null) {
-                            setState(() {
-                              _hasSelectedImg = true;
-                            });
-                          }
+                          // img = await getImageFromGallery();
+                          // if (img != null) {
+                          //   setState(() {
+                          //     _hasSelectedImg = true;
+                          //   });
+                          // }
                         },
                         icon: const Icon(Icons.add_a_photo),
                       ),
@@ -141,7 +143,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                   return null;
                                 },
-                                decoration: textFieldDecoration(label: 'Email')),
+                                decoration:
+                                    textFieldDecoration(label: 'Email')),
                             const SizedBox(
                               height: 12,
                             ),
@@ -154,7 +157,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                   return null;
                                 },
-                                decoration: textFieldDecoration(label: 'Password')),
+                                decoration:
+                                    textFieldDecoration(label: 'Password')),
                             const SizedBox(
                               height: 12,
                             ),
@@ -166,14 +170,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                   return null;
                                 },
-                                decoration: textFieldDecoration(label: 'Username')),
+                                decoration:
+                                    textFieldDecoration(label: 'Username')),
                             const SizedBox(
                               height: 12,
                             ),
                             TextFormField(
                                 controller: _bioController,
-                                decoration:
-                                    textFieldDecoration(label: 'Bio')),
+                                decoration: textFieldDecoration(label: 'Bio')),
+                            const SizedBox(
+                              height: 12,
+                            ),
+                            TextFormField(
+                                controller: _nomeCognomeController,
+                                decoration: textFieldDecoration(
+                                    label: 'Nome e cognome')),
                             const SizedBox(
                               height: 24,
                             ),

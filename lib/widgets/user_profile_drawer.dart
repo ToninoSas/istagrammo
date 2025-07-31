@@ -10,7 +10,7 @@ import 'package:istagrammo/utils/utils.dart';
 import 'package:provider/provider.dart';
 
 class UserProfileDrower extends StatefulWidget {
-  UserProfileDrower({super.key});
+  const UserProfileDrower({super.key});
 
   @override
   State<UserProfileDrower> createState() => _UserProfileDrowerState();
@@ -136,10 +136,8 @@ class _UserProfileDrowerState extends State<UserProfileDrower> {
                         'Sei sicuro di voler eliminare l\'account?\nTutti i tuoi dati andranno persi\n(Potrebbe essere richiesta l\'autenticazione)'),
                     actions: [
                       ElevatedButton(
-                          onPressed: true
-                              ? null
-                              : () async {
-                                  deleteUser(user.uid);
+                          onPressed: () async {
+                                  // deleteUser(user.uid);
                                 },
                           child: const Text('OK')),
                       ElevatedButton(

@@ -1,58 +1,53 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:istagrammo/models/user.dart';
 import 'package:istagrammo/resources/auth_methods.dart';
-import 'package:istagrammo/resources/firestore_methods.dart';
+import 'package:istagrammo/resources/database_methods.dart';
 import 'package:istagrammo/screens/profile_screen.dart';
 import 'package:istagrammo/utils/styles.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SearchScreen extends StatefulWidget {
   SearchScreen(
       {super.key,
-      this.isFollowedPage = false,
-      this.isFollowersPage = false,
-      required this.uid});
+      this.inSeguiti = false,
+      this.inFollowers = false,
+      required this.targetId});
 
   static String pageRouteName = '/search';
   final int selectedIndex = 1;
 
-  bool? isFollowersPage, isFollowedPage;
-  String uid;
+  bool inFollowers, inSeguiti;
+  String targetId;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
+// pagina chiamata per cercare persone
+// viene chiamata anche per cercare tra i follower e i seguiti
 class _SearchScreenState extends State<SearchScreen> {
   bool hasSearched = false, _isCurrentUser = true, _isLoading = false;
-  User currentUser = FirebaseAuth.instance.currentUser!;
+  User currentUser = Supabase.instance.client.auth.currentUser!;
 
-  MyUser? user;
+  MyUser? targetUser;
 
-  TextEditingController _searchController = TextEditingController(text: "");
+  final TextEditingController _searchController =
+      TextEditingController(text: "");
 
   getUsers() {
     // String yourPosts = "I tuoi posts";
     String usernameToSearch = _searchController.text;
 
-    if (widget.isFollowersPage!) {
-      return FirebaseFirestore.instance
-          .collection(FirestoreMethods.utentiCollection)
-          .where('followed', arrayContains: widget.uid)
-          .where('username', isGreaterThanOrEqualTo: usernameToSearch)
-          .get();
-    } else if (widget.isFollowedPage!) {
-      return FirebaseFirestore.instance
-          .collection(FirestoreMethods.utentiCollection)
-          .where('followers', arrayContains: widget.uid)
-          .where('username', isGreaterThanOrEqualTo: usernameToSearch)
-          .get();
+    // cerco nei followers
+    if (widget.inFollowers) {
+
+      return DatabaseMethods().getUserFollowers(userId: currentUser.id, filter: usernameToSearch);
+
+    } else if (widget.inSeguiti) {
+      // cerco nei seguiti
+      return DatabaseMethods().getUserSeguiti(userId: currentUser.id, filter: usernameToSearch);
     } else {
-      return FirebaseFirestore.instance
-          .collection(FirestoreMethods.utentiCollection)
-          .where('username', isGreaterThanOrEqualTo: usernameToSearch)
-          .get();
+      return DatabaseMethods().getUsers(filter: usernameToSearch);
     }
   }
 
@@ -60,25 +55,24 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
 
-    setState(() {
-      _isLoading = true;
-    });
+    // setState(() {
+    //   _isLoading = true;
+    // });
 
-    AuthMethods().getUserData(uid: widget.uid).then((value) {
-      if (value!.uid != currentUser.uid) {
-        if (context.mounted) {
-          setState(() {
-            _isCurrentUser = false;
-          });
-        }
-      }
-      if (context.mounted) {
-        setState(() {
-          user = value;
-          _isLoading = false;
-        });
-      }
-    });
+    // if(widget.targetId!=currentUser.id){
+    //   // carico i dati del target
+    //   AuthMethods().getUserData(uid: widget.targetId).then((value) {
+    //     setState(() {
+    //       _isCurrentUser = false;
+    //       targetUser = value;
+    //       _isLoading = false;
+    //     });
+    //   });
+    // }
+
+    // setState(() {
+    //   _isLoading = false;
+    // });
   }
 
   @override
@@ -88,16 +82,16 @@ class _SearchScreenState extends State<SearchScreen> {
     String emptyFollowed =
         _isCurrentUser ? "Non hai seguiti" : "Non ha seguiti";
     String yourSeguiti =
-        _isCurrentUser ? "I tuoi seguiti" : "I seguiti di ${user!.username}";
+        _isCurrentUser ? "I tuoi seguiti" : "I seguiti di ${targetUser!.username}";
     String yourFollowers = _isCurrentUser
         ? "I tuoi followers"
-        : "I followers di ${user!.username}";
+        : "I followers di ${targetUser!.username}";
 
     AppBar appBar = AppBar(
-      title: (widget.isFollowedPage!)
-          ? Text(yourSeguiti)
-          : (widget.isFollowersPage!)
-              ? Text(yourFollowers)
+      title: (widget.inSeguiti)
+          ? Text("Utenti")
+          : (widget.inFollowers)
+              ? Text("Utenti")
               : const Text('Cerca'),
     );
 
@@ -126,18 +120,20 @@ class _SearchScreenState extends State<SearchScreen> {
                 : FutureBuilder(
                     future: getUsers(),
                     builder: (context, snapshot) {
+
+                      print(snapshot.data);
                       if (!snapshot.hasData) {
                         return const Center(
                           child: CircularProgressIndicator(),
                         );
                       }
 
-                      if ((snapshot.data as dynamic).docs.length == 0) {
-                        if (widget.isFollowedPage!) {
+                      if ((snapshot.data as dynamic).length == 0) {
+                        if (widget.inSeguiti) {
                           return Center(
                             child: Text(emptyFollowed),
                           );
-                        } else if (widget.isFollowersPage!) {
+                        } else if (widget.inFollowers) {
                           return Center(
                             child: Text(emptyFollowers),
                           );
@@ -149,33 +145,33 @@ class _SearchScreenState extends State<SearchScreen> {
                       }
 
                       return ListView.builder(
-                        itemCount: (snapshot.data as dynamic).docs.length,
+                        itemCount: (snapshot.data as dynamic).length,
                         itemBuilder: (context, index) {
-                          MyUser myUser = MyUser.fromSnap(
-                              (snapshot.data as dynamic).docs[index]);
+                          MyUser listedUser =
+                              (snapshot.data as dynamic)[index];
 
                           return InkWell(
                             onTap: () {
                               // se l'utente è diverso da quello corrente, lo porto alla pagina dell altro utente
-                              if (currentUser.uid != myUser.uid) {
+                              if (currentUser.id != listedUser.id) {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => ProfileScreen(
-                                              uid: myUser.uid,
+                                              userToShowUid: listedUser.id,
                                             )));
                               }
                             },
                             child: ListTile(
-                              subtitle: currentUser.uid == myUser.uid
+                              subtitle: currentUser.id == listedUser.id
                                   ? const Text('(io)')
-                                  : Text(myUser.bio),
+                                  : Text(listedUser.bio),
                               leading: CircleAvatar(
                                 radius: 30,
                                 backgroundImage:
-                                    NetworkImage(myUser.profileImgUrl),
+                                    NetworkImage(listedUser.profileImgUrl),
                               ),
-                              title: Text(myUser.username),
+                              title: Text(listedUser.username),
                             ),
                           );
                         },

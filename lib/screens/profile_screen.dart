@@ -1,26 +1,29 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:istagrammo/models/post.dart';
+import 'package:istagrammo/models/pick.dart';
 import 'package:istagrammo/models/user.dart';
 import 'package:istagrammo/providers/user_provider.dart';
-import 'package:istagrammo/resources/firestore_methods.dart';
-import 'package:istagrammo/screens/edit_profile_screen.dart';
+import 'package:istagrammo/resources/auth_methods.dart';
+import 'package:istagrammo/resources/database_methods.dart';
 import 'package:istagrammo/screens/search_screen.dart';
-import 'package:istagrammo/screens/upload_post_screen.dart';
-import 'package:istagrammo/widgets/post_thumb.dart';
-import 'package:istagrammo/widgets/twitt_card.dart';
+// import 'package:istagrammo/screens/edit_profile_screen.dart';
+// import 'package:istagrammo/screens/search_screen.dart';
+// import 'package:istagrammo/screens/upload_post_screen.dart';
+// import 'package:istagrammo/widgets/post_thumb.dart';
+// import 'package:istagrammo/widgets/twitt_card.dart';
 import 'package:istagrammo/widgets/user_profile_drawer.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'edit_profile_screen.dart';
 
 // ignore: must_be_immutable
 class ProfileScreen extends StatefulWidget {
-  ProfileScreen({super.key, required this.uid});
+  ProfileScreen({super.key, required this.userToShowUid});
 
-  String uid;
+  String userToShowUid;
   static const pageRouteName = '/profile';
   int selectedIndex = 2;
 
@@ -29,52 +32,51 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  MyUser? myUser;
+  MyUser? pageUser;
 
   bool isLoading = false, _isCurrentUser = true, hasLoadedUserData = false;
 
-  int nPosts = 0, nFollowers = 0, nFollowed = 0;
   bool isFollowing = false;
+
+  get supabase => Supabase.instance.client;
+  get currentUser => Supabase.instance.client.auth.currentUser;
+
+  int nPosts = 0, nFollowers = 0, nSeguiti = 0;
 
   getData() async {
     setState(() {
       isLoading = true;
     });
 
-    if (widget.uid != FirebaseAuth.instance.currentUser!.uid) {
+    if (widget.userToShowUid != supabase.auth.currentUser.id) {
+      // sto vedendo il profilo di un altro utente
       _isCurrentUser = false;
 
-      final snap = await FirebaseFirestore.instance
-          .collection(FirestoreMethods.utentiCollection)
-          .doc(widget.uid)
-          .get();
+      pageUser = await AuthMethods().getUserData(uid: widget.userToShowUid);
+      pageUser!.posts = await DatabaseMethods().getUserPosts(userId: pageUser!.id);
+      pageUser!.followers = await DatabaseMethods().getUserFollowers(userId: pageUser!.id);
+      pageUser!.followed = await DatabaseMethods().getUserSeguiti(userId: pageUser!.id);
 
-      myUser = MyUser.fromSnap(snap);
-
-      final postsSnap = await FirebaseFirestore.instance
-          .collection(FirestoreMethods.postsCollection)
-          .where('uid', isEqualTo: widget.uid)
-          .orderBy('datePublished', descending: true)
-          .get();
-
-      for (var post in postsSnap.docs) {
-        if (post.data()['isTwitt']) {
-          myUser!.twitts.add(post);
-        } else {
-          myUser!.posts.add(Post.fromSnap(post));
-        }
+      for (var follower in pageUser!.followers){
+        print(follower.toJson());
       }
+
+      pageUser!.followers.map((follower){
+        print('json: ${follower.toJson()}');
+        if(follower.id == currentUser.id) {
+          isFollowing = true;
+          print('lo seguo');
+        }
+      });
     } else {
-      // è l'user corrente
-      myUser = Provider.of<UserProvider>(context).myUser;
+      pageUser = Provider.of<UserProvider>(context).myUser;
     }
 
-    nFollowed = myUser!.followed.length;
-    nFollowers = myUser!.followers.length;
-    nPosts = myUser!.posts.length + myUser!.twitts.length;
 
-    isFollowing =
-        myUser!.followers.contains(FirebaseAuth.instance.currentUser!.uid);
+
+    nPosts = pageUser!.posts.length;
+    nFollowers = pageUser!.followers.length;
+    nSeguiti = pageUser!.followed.length;
 
     setState(() {
       isLoading = false;
@@ -101,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         : Scaffold(
             appBar: AppBar(
               // backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-              title: Text(myUser!.username),
+              title: Text(pageUser!.username),
               actions: [
                 if (_isCurrentUser)
                   IconButton(
@@ -114,14 +116,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   SimpleDialogOption(
                                     onPressed: () async {
-                                      Navigator.of(context).pop();
-
-                                      Navigator.of(context)
-                                          .push(MaterialPageRoute(
-                                        builder: (context) => UploadPostScreen(
-                                          myUser: myUser,
-                                        ),
-                                      ));
+                                      // Navigator.of(context).pop();
+                                      //
+                                      // Navigator.of(context)
+                                      //     .push(MaterialPageRoute(
+                                      //   builder: (context) => UploadPostScreen(
+                                      //     myUser: myUser,
+                                      //   ),
+                                      // ));
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.all(12),
@@ -133,14 +135,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   SimpleDialogOption(
                                     onPressed: () async {
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context)
-                                          .push(MaterialPageRoute(
-                                        builder: (context) => UploadPostScreen(
-                                          myUser: myUser,
-                                          isTwitt: true,
-                                        ),
-                                      ));
+                                      // Navigator.of(context).pop();
+                                      // Navigator.of(context)
+                                      //     .push(MaterialPageRoute(
+                                      //   builder: (context) => UploadPostScreen(
+                                      //     myUser: myUser,
+                                      //     isTwitt: true,
+                                      //   ),
+                                      // ));
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.all(12),
@@ -173,11 +175,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Widget showProfilePicScreen = Scaffold(
                                 appBar: AppBar(
                                   title: Text(
-                                      'Immagine profilo di ${myUser!.username}'),
+                                      'Immagine profilo di ${pageUser!.username}'),
                                 ),
                                 body: Center(
                                   child: Image(
-                                    image: NetworkImage(myUser!.profileImgUrl),
+                                    image:
+                                        NetworkImage(pageUser!.profileImgUrl),
                                     errorBuilder: (context, error, stackTrace) {
                                       return Text(
                                           'Impossibile caricare l\'immagine profilo');
@@ -196,7 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               // backgroundColor: Colors.grey,
                               radius: 40,
                               backgroundImage:
-                                  NetworkImage(myUser!.profileImgUrl),
+                                  NetworkImage(pageUser!.profileImgUrl),
                             ),
                           ),
                           Column(
@@ -207,8 +210,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onTap: () {
                               Navigator.of(context).push(MaterialPageRoute(
                                 builder: (context) => SearchScreen(
-                                  isFollowersPage: true,
-                                  uid: myUser!.uid,
+                                  inFollowers: true,
+                                  targetId: pageUser!.id,
                                 ),
                               ));
                             },
@@ -221,14 +224,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onTap: () {
                               Navigator.of(context).push(MaterialPageRoute(
                                 builder: (context) => SearchScreen(
-                                  isFollowedPage: true,
-                                  uid: myUser!.uid,
+                                  inSeguiti: true,
+                                  targetId: pageUser!.id,
                                 ),
                               ));
                             },
                             child: Column(
                               children: [
-                                Text(nFollowed.toString()),
+                                Text(nSeguiti.toString()),
                                 Text('seguiti')
                               ],
                               // seguiti
@@ -239,7 +242,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text(myUser!.bio),
+                      child: Text(pageUser!.bio),
                     ),
                     Row(
                       // direction: Axis.horizontal,
@@ -251,8 +254,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   onPressed: () {
                                     Navigator.of(context)
                                         .push(MaterialPageRoute(
-                                      builder: (context) =>
-                                          EditProfileScreen(myUser: myUser!),
+                                      builder: (context) => EditProfileScreen(
+                                          userToEdit: pageUser!),
                                     ));
                                   },
                                   child: Text('Modifica profilo')))
@@ -261,11 +264,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: isFollowing
                                   ? ElevatedButton(
                                       onPressed: () async {
-                                        await FirestoreMethods().followUser(
-                                            currentUid: FirebaseAuth
-                                                .instance.currentUser!.uid,
-                                            receiveUid: myUser!.uid,
-                                            followers: myUser!.followers);
+                                        await DatabaseMethods().followUser(
+                                            codUtente: currentUser.id,
+                                            codSeguito: pageUser!.id);
 
                                         setState(() {
                                           isFollowing = false;
@@ -275,11 +276,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       child: Text('Non seguire più'))
                                   : ElevatedButton(
                                       onPressed: () async {
-                                        await FirestoreMethods().followUser(
-                                            currentUid: FirebaseAuth
-                                                .instance.currentUser!.uid,
-                                            receiveUid: myUser!.uid,
-                                            followers: myUser!.followers);
+                                        await DatabaseMethods().followUser(
+                                            codUtente: currentUser.id,
+                                            codSeguito: pageUser!.id);
 
                                         setState(() {
                                           isFollowing = true;
@@ -333,7 +332,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Expanded(
                                 child: TabBarView(
                               children: [
-                                if (myUser!.posts.isEmpty)
+                                if (pageUser!.posts.isEmpty)
                                   Center(
                                     child: Text('Non ci sono posts'),
                                   )
@@ -346,26 +345,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               crossAxisCount: 3,
                                               crossAxisSpacing: 5,
                                               mainAxisSpacing: 5),
-                                      itemCount: myUser!.posts.length,
+                                      itemCount: pageUser!.posts.length,
                                       itemBuilder: (context, index) {
-                                        return PostThumb(
-                                          index: index,
-                                          snap: myUser!.posts[index],
-                                          isCurrentUser: _isCurrentUser,
-                                        );
+                                        // return PostThumb(
+                                        //   index: index,
+                                        //   snap: myUser!.posts[index],
+                                        //   isCurrentUser: _isCurrentUser,
+                                        // );
                                       },
                                     ),
                                   ),
-                                if (myUser!.twitts.isEmpty)
+                                if (pageUser!.twitts.isEmpty)
                                   Center(
                                     child: Text('Non ci sono twitts'),
                                   )
                                 else
                                   ListView.builder(
-                                    itemCount: myUser!.twitts.length,
+                                    itemCount: pageUser!.twitts.length,
                                     itemBuilder: (context, index) {
-                                      return TwittCard(
-                                          snap: myUser!.twitts[index].data());
+                                      // return TwittCard(
+                                      //     snap: myUser!.twitts[index].data());
                                     },
                                   ),
                               ],

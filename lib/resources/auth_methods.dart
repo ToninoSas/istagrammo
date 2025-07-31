@@ -2,16 +2,21 @@
 
 import 'dart:typed_data';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:istagrammo/models/user.dart';
-import 'package:istagrammo/resources/firestore_methods.dart';
+import 'package:istagrammo/resources/database_methods.dart';
 import 'package:istagrammo/resources/storage_methods.dart';
 import 'package:istagrammo/utils/utils.dart';
 
 class AuthMethods {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  // final FirebaseAuth _auth = FirebaseAuth.instance;
+  // final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  // final supabase = Supabase.instance.client;
+  final _auth = Supabase.instance.client.auth;
+  final _db = Supabase.instance.client;
 
   Future<String> login(
       {required String email, required String password}) async {
@@ -21,7 +26,8 @@ class AuthMethods {
     password = password.trim();
 
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      // await _auth.signInWithEmailAndPassword(email: email, password: password);
+      await _auth.signInWithPassword(email: email, password: password);
     } catch (err) {
       msg = err.toString();
     }
@@ -33,6 +39,7 @@ class AuthMethods {
       {required String email,
       required String password,
       required String username,
+      required String nomeCognome,
       String? bio,
       Uint8List? profileImg}) async {
     String msg = "";
@@ -42,8 +49,7 @@ class AuthMethods {
     username = username.trim();
 
     try {
-      UserCredential cred = await _auth.createUserWithEmailAndPassword(
-          email: email, password: password);
+      AuthResponse cred = await _auth.signUp(email: email, password: password);
 
       String? profileImgUrl;
 
@@ -53,17 +59,13 @@ class AuthMethods {
 
       MyUser user = MyUser(
           username: username,
-          uid: cred.user!.uid,
+          id: cred.user!.id,
+          nomecognome: nomeCognome,
           email: email,
           bio: bio ?? "",
-          followers: [],
-          followed: [],
           profileImgUrl: profileImgUrl ?? defaultProfileImg);
 
-      await _db
-          .collection(FirestoreMethods.utentiCollection)
-          .doc(cred.user!.uid)
-          .set(user.toJson());
+      await _db.from('users').insert(user.toJson());
     } catch (err) {
       msg = err.toString();
     }
@@ -83,14 +85,11 @@ class AuthMethods {
 
   Future<MyUser?> getUserData({required String uid}) async {
     if (_auth.currentUser != null) {
-      DocumentSnapshot snap;
+      // DocumentSnapshot snap;
 
-      snap = await _db
-          .collection(FirestoreMethods.utentiCollection)
-          .doc(uid)
-          .get();
+      final response = await _db.from('users').select("*").eq('id', uid);
 
-      return MyUser.fromSnap(snap);
+      return MyUser.fromSnap(response.first);
     } else {
       return null;
     }
@@ -98,7 +97,7 @@ class AuthMethods {
 
   Future<bool> deleteUser({required String uid}) async {
     try {
-      await _auth.currentUser!.delete();
+      // await _auth.currentUser!.delete();
 
       // todo cancellare i dati dell'utente
       // todo cancellare i post dell'utente

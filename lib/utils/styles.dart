@@ -29,8 +29,8 @@ ThemeData darkTheme = ThemeData.dark().copyWith(
   primaryColorDark: Colors.grey,
   elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
-          backgroundColor: const MaterialStatePropertyAll(primaryColorDark),
-          shape: MaterialStatePropertyAll(
+          backgroundColor: const WidgetStatePropertyAll(primaryColorDark),
+          shape: WidgetStatePropertyAll(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(5))))),
 );
 
@@ -54,7 +54,7 @@ ThemeData lightTheme = ThemeData.light().copyWith(
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
-          backgroundColor: const MaterialStatePropertyAll(primaryColorLight),
-          shape: MaterialStatePropertyAll(
+          backgroundColor: const WidgetStatePropertyAll(primaryColorLight),
+          shape: WidgetStatePropertyAll(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(5))))),
 );

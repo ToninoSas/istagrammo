@@ -5,15 +5,15 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import 'package:istagrammo/models/user.dart';
-import 'package:istagrammo/resources/firestore_methods.dart';
+import 'package:istagrammo/resources/database_methods.dart';
 import 'package:istagrammo/resources/storage_methods.dart';
 import 'package:istagrammo/utils/styles.dart';
 import 'package:istagrammo/utils/utils.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  EditProfileScreen({super.key, required this.myUser});
+  EditProfileScreen({super.key, required this.userToEdit});
 
-  MyUser myUser;
+  MyUser userToEdit;
   static const String pageRoute = '/edit_profile';
 
   @override
@@ -43,7 +43,7 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
       profileImgUrl = defaultProfileImg;
     }
 
-    String err = await FirestoreMethods().editProfile(
+    String err = await DatabaseMethods().editProfile(
         username: newName, bio: newBio, profileImgUrl: profileImgUrl);
 
     return err;
@@ -53,7 +53,7 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    widget.myUser.profileImgUrl == defaultProfileImg
+    widget.userToEdit.profileImgUrl == defaultProfileImg
         ? resettedProfilePic = true
         : resettedProfilePic = false;
   }
@@ -61,8 +61,8 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     //TODO
-    _nameController.text = widget.myUser.username;
-    _bioController.text = widget.myUser.bio;
+    _nameController.text = widget.userToEdit.username;
+    _bioController.text = widget.userToEdit.bio;
 
     return Scaffold(
       appBar: AppBar(
@@ -104,7 +104,7 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
                                   : CircleAvatar(
                                       radius: 40,
                                       backgroundImage: NetworkImage(
-                                          widget.myUser.profileImgUrl),
+                                          widget.userToEdit.profileImgUrl),
                                     ),
                             if (resettedProfilePic == false)
                               Positioned(
@@ -125,14 +125,15 @@ class _EditProfileScreen_State extends State<EditProfileScreen> {
                           ],
                         ),
                         ElevatedButton(
+
                             onPressed: () async {
-                              file = await getImageFromGallery();
-                              if (file != null) {
-                                setState(() {
-                                  changedProfilePic = true;
-                                  resettedProfilePic = false;
-                                });
-                              }
+                              // file = await getImageFromGallery();
+                              // if (file != null) {
+                              //   setState(() {
+                              //     changedProfilePic = true;
+                              //     resettedProfilePic = false;
+                              //   });
+                              // }
                             },
                             child: Text('Modifica'))
                       ],

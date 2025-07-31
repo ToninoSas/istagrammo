@@ -1,39 +1,43 @@
 import 'dart:typed_data';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 class StorageMethods {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final _auth = Supabase.instance.client.auth;
+  final _storage = Supabase.instance.client.storage;
 
   Future<String> uploadProfilePic(Uint8List file) async {
-    return await _uploadImageToStorage('profilePics', file, false);
+    return await _uploadImageToStorage('profileImgs', file, false);
   }
 
-  Future<String> uploadPost(Uint8List file) async{
-    return await _uploadImageToStorage('posts', file, true);
+  Future<String> uploadPost(Uint8List file) async {
+    return await _uploadImageToStorage('picks', file, true);
   }
 
   // adding image to firebase storage
   Future<String> _uploadImageToStorage(
-      String childName, Uint8List file, bool isPost) async {
+      String folder, Uint8List file, bool isPost) async {
     // creating location to our firebase storage
 
-    Reference ref =
-        _storage.ref().child(childName).child(_auth.currentUser!.uid);
+    String filename, filepath;
     if (isPost) {
-      // per generare un uuid randomico
       String id = const Uuid().v1();
-      ref = ref.child(id);
+      filename = id;
+    } else {
+      filename = _auth.currentUser!.id;
     }
 
-    // putting in uint8list format -> Upload task like a future but not future
-    UploadTask uploadTask = ref.putData(file);
+    filepath = "$folder/$filename";
+    try {
+      await _storage.from('bucket1').uploadBinary(folder, file);
 
-    TaskSnapshot snapshot = await uploadTask;
-    String downloadUrl = await snapshot.ref.getDownloadURL();
-    return downloadUrl;
+      String downloadUrl =
+          await _storage.from('bucket1').getPublicUrl(filepath);
+      return downloadUrl;
+    } catch (e) {
+      print("Errore durante l'upload: $e");
+      return e.toString();
+    }
   }
 }

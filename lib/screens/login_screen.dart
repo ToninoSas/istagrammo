@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     backgroundColor: Colors.transparent,
                     radius: 60,
                     backgroundImage:
-                        AssetImage('assets/logo/istogramma3.png'),
+                        AssetImage('images/myimg.jpg'),
                   ),
                   Container(
                     padding: const EdgeInsets.all(32),
