@@ -10,3 +10,5 @@ The app is three page based:
 - **Home page** too see posts
 - **Search page** to search users
 - **Profile page**
+
+I used provider and listeners: **user_provider** for user data and **theme_provider** for toggle light/dark app theme 
