@@ -12,7 +12,7 @@ The app is three page based:
 - **Profile page**
 
 I used provider and listeners: **user_provider** for user data and **theme_provider** for toggle light/dark app theme 
-
+## App Branches
 The app has several branches:
 - **main_firebase** is the completed app version with firebase
 - **custom_api_version** use a custom API Flask endpoint as backend
