@@ -1,16 +1,11 @@
-# instagram_app_cool
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Istagrammo, an Instagram Clone
+Istagrammo is an Instagram Clone built with flutter + firebase, the software includes:
+- *Authentication*
+- *Adding new posts*
+- *Comments posts*
+- *Edit profile*
+- *Follow users*
+The app is three page based:
+- *Home page* too see posts
+- *Search page* to search users
+- *Profile page*
