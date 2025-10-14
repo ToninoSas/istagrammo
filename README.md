@@ -4,8 +4,8 @@ Istagrammo is an Instagram Clone built with flutter + firebase, the software inc
 - *Adding new posts*
 - *Comments posts*
 - *Edit profile*
-- *Follow users*
-The app is three page based:
+- *Follow users*   
+The app is three page based:   
 - *Home page* too see posts
 - *Search page* to search users
 - *Profile page*
