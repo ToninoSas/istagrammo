@@ -92,6 +92,6 @@ flutter run
 | Branch | Descrizione |
 |---|---|
 | [`main_firebase`](https://github.com/ToninoSas/istagrammo/tree/main_firebase) | App completa basata su Firebase (predefinito) |
-| [`custom-api-version`](https://github.com/ToninoSas/istagrammo/tree/custom-api-version) | Usa una API Flask personalizzata come backend |
+| [`custom-api-version`](https://github.com/ToninoSas/istagrammo/tree/custom-api-version) | Usa una API Flask personalizzata come backend (questa: **[Instagram API Clone](https://github.com/ToninoSas/instagram_api.git)** |
 | [`old_firebase_version`](https://github.com/ToninoSas/istagrammo/tree/old_firebase_version) | Implementazione Firebase precedente |
 | [`supabase_version`](https://github.com/ToninoSas/istagrammo/tree/supabase_version) | Migrazione da Firebase a Supabase in corso (incompleta) |
